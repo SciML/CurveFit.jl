@@ -66,6 +66,21 @@ The `nonlinear_fit` function is used to implement the following fitting function
  * `king_fit(E, U)` find coefficients `a`, `b` and `n` for `E[i]^2 = a + b*U^n`
  * `rational_fit` Just like `linear_rational_fit` but tries to improve the results using nonlinear least squares (`nonlinear_fit`)
 
+## Example
+```julia
+using PyPlot
+using CurveFit
+
+x = 0.1:0.1:10.0
+y =  @. 2.0 / x  * exp(-1.5 / x ) + randn()/100
+
+fun(xy, a) = xy[2] - a[1] / xy[1] * exp( - a[2] / xy[1])
+coefs, converged, iter = nonlinear_fit([x y], fun, [2.1 1.4], 1e-7, 200)
+y_fit = @. coefs[1] / x * exp(-coefs[2] / x)
+
+plot(x, y, "o", x, y_fit, "r-", linewidth=3)
+```
+
 ## Generic interface
 
 A generic interface was developed to have a common interface for all curve fitting possibilities and to make it easy to use the results:
