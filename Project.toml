@@ -16,7 +16,7 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 [compat]
 CommonSolve = "0.2"
 ConcreteStructs = "0.2.3"
-InverseFunctions = "0.1.17"
+InverseFunctions = "0.1"
 LinearAlgebra = "1.10"
 LinearSolve = "3.15.0"
 Markdown = "1.10.0"

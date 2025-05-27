@@ -6,7 +6,7 @@ using InverseFunctions: inverse
 using Markdown: @doc_str
 
 using LinearSolve: LinearSolve
-using SciMLBase: AbstractLinearAlgorithm
+using SciMLBase: AbstractNonlinearAlgorithm, AbstractLinearAlgorithm
 
 using SciMLBase
 using NonlinearSolve
@@ -27,8 +27,9 @@ include("king.jl")
 include("expsumfit.jl")
 
 # Exported functions
-export LinearCurveFitProblem, LogCurveFitProblem, PowerCurveFitProblem, ExpCurveFitProblem
-export PolynomialFitAlgorithm
+export CurveFitProblem, LinearCurveFitProblem, LogCurveFitProblem, PowerCurveFitProblem,
+       ExpCurveFitProblem
+export PolynomialFitAlgorithm, RationalPolynomialFitAlgorithm
 export LinearCurveFitSolution
 
 export solve, solve!, init

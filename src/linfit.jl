@@ -33,11 +33,11 @@ end
 
 # Default Solver
 @concrete struct GenericLinearFitCache
-    prob <: LinearCurveFitProblem
+    prob <: CurveFitProblem
     kwargs
 end
 
-function CommonSolve.init(prob::LinearCurveFitProblem, ::Nothing; kwargs...)
+function CommonSolve.init(prob::CurveFitProblem, ::__FallbackLinearFitAlgorithm; kwargs...)
     return GenericLinearFitCache(prob, kwargs)
 end
 
@@ -45,10 +45,10 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
     b, a = __linear_fit_internal(
         cache.prob.xfun, cache.prob.x, cache.prob.yfun, cache.prob.y
     )
-    return LinearCurveFitSolution(nothing, (a, b), cache.prob)
+    return LinearCurveFitSolution(__FallbackLinearFitAlgorithm(), (a, b), cache.prob)
 end
 
-function (sol::LinearCurveFitSolution{<:Nothing})(x::Number)
+function (sol::LinearCurveFitSolution{__FallbackLinearFitAlgorithm})(x::Number)
     a, b = sol.coeffs
     return sol.prob.yfun_inverse(b + a * sol.prob.xfun(x))
 end
@@ -57,17 +57,17 @@ end
 @concrete struct PolynomialFitCache
     vandermondepoly_cache <: AbstractMatrix
     linsolve_cache
-    prob <: LinearCurveFitProblem
+    prob <: CurveFitProblem
     alg <: PolynomialFitAlgorithm
     kwargs
 end
 
 function CommonSolve.init(
-        prob::LinearCurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
 )
-    @assert prob.xfun===identity "Polynomial fit only works with LinearCurveFitProblem \
+    @assert prob.xfun===identity "Polynomial fit only works with CurveFitProblem \
                                   with xfun = identity"
-    @assert prob.yfun===identity "Polynomial fit only works with LinearCurveFitProblem \
+    @assert prob.yfun===identity "Polynomial fit only works with CurveFitProblem \
                                   with yfun = identity"
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
     linear_problem = LinearProblem(vandermondepoly_cache, prob.y)
