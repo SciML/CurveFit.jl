@@ -1,27 +1,44 @@
-# Rational polynomial interpolation
+@concrete struct RationalPolynomial
+    numerator <: AbstractVector
+    denominator <: AbstractVector
+end
 
-"""
-Linear Rational LeastSquares
+function (rpoly::RationalPolynomial)(x::Number)
+    return evalpoly(x, rpoly.numerator) / evalpoly(x, rpoly.denominator)
+end
 
-The following curvit is done:
+# Common Solve Interface
+@concrete struct LinearRationalFitCache
+    mat <: AbstractMatrix
+    linsolve_cache
+    prob <: CurveFitProblem
+    alg <: RationalPolynomialFitAlgorithm
+    kwargs
+end
 
-`y = p(x) / q(x)`
+function CommonSolve.init(
+        prob::CurveFitProblem, alg::RationalPolynomialFitAlgorithm; kwargs...
+)
+    @assert !is_nonlinear_problem(prob) "Rational polynomial fitting doesn't work with \
+                                         nlfunc specification."
+    @assert prob.xfun===identity "Rational polynomial fit only works with \
+                                  xfun = identity"
+    @assert prob.yfun===identity "Rational polynomial fit only works with \
+                                  yfun = identity"
 
-where `p(x)` and `q(x)` are polynomials.
+    if alg.alg isa AbstractLinearAlgorithm
+        A = similar(prob.x, length(prob.x), alg.num_degree + alg.den_degree + 1)
+        return LinearRationalFitCache(
+            A, init(LinearProblem(A, prob.y), alg.alg; kwargs...), prob, alg, kwargs
+        )
+    end
 
-The linear case is solved by doing a least square fit on
+    error("TODO: Nonlinear rational polynomial fitting is not implemented yet")
+end
 
-`y * q(x) = p(x)`
-
-where the zero order term o `q(x)` is assumed to be 1.
-"""
-function linear_rational_fit(
-        x::AbstractVector{T}, y::AbstractVector{T}, p, q
-) where {T <: Number}
-    n = size(x, 1)
-    A = zeros(T, n, q + p + 1)
+function __linear_rational_matrix!(A, x, y, p, q)
     @inbounds for i in axes(x, 1)
-        A[i, 1] = one(T)
+        A[i, 1] = true
         @simd ivdep for k in 1:p
             A[i, k + 1] = x[i]^k
         end
@@ -29,70 +46,56 @@ function linear_rational_fit(
             A[i, p + 1 + k] = -y[i] * x[i]^k
         end
     end
-    return qr!(A, ColumnNorm()) \ y
+    return
 end
 
-"""
-# Type defining a rational polynomial
-
-A rational polynomial is the ratio of two polynomials
-and it is often useful in approximating functions.
-"""
-struct RationalPoly{T <: Number} <: AbstractLeastSquares
-    num::Vector{T}
-    den::Vector{T}
-end
-function RationalPoly(p::Integer, q::Integer, ::Type{T} = Float64) where {T <: Number}
-    RationalPoly(zeros(T, p + 1), zeros(T, q + 1))
-end
-
-function RationalPoly(coefs::AbstractVector{T}, p, q) where {T <: Number}
-    RationalPoly(collect(coefs[1:(p + 1)]), [one(T); collect(coefs[(p + 2):end])])
-end
-
-"""
-Evaluate a rational polynomial
-"""
-ratval(r::RationalPoly, x) = evalpoly(x, r.num) / evalpoly(x, r.den)
-
-"""
-`call` overload for calling directly `ratval`
-"""
-(r::RationalPoly)(x) = ratval(r, x)
-
-"""
-Auxiliary function used in nonlinear least squares
-"""
-function make_rat_fun(p, q)
-    return let p = p, q = q
-        (y, x, a) -> begin
-            num = view(a, 1:(p + 1))
-            den = vcat(one(eltype(x)), view(a, (p + 2):(p + q + 1)))
-
-            @inbounds @simd ivdep for i in eachindex(y)
-                y[i] = evalpoly(x[1, i], num) / evalpoly(x[1, i], den) - x[2, i]
-            end
-
-            return y
-        end
-    end
-end
-
-"""
-# Carry out a nonlinear least squares of rational polynomials
-
-Find the polynomial coefficients that best approximate
-the points given by `x` and `y`.
-"""
-function rational_fit(x, y, p, q, args...; kwargs...)
-    coefs0 = linear_rational_fit(x, y, p, q)
-    sol = nonlinear_fit(
-        make_rat_fun(p, q), stack((x, y); dims=1), coefs0, args...;
-        resid_prototype = Vector{eltype(coefs0)}(undef, length(x)), iip=Val(true), kwargs...
+function CommonSolve.solve!(cache::LinearRationalFitCache)
+    __linear_rational_matrix!(
+        cache.mat, cache.prob.x, cache.prob.y, cache.alg.num_degree, cache.alg.den_degree
     )
-    return sol.u
+    cache.linsolve_cache.A = cache.mat
+    return CurveFitSolution(cache.alg, solve!(cache.linsolve_cache).u, cache.prob)
 end
 
-function curve_fit(::Type{RationalPoly}, x, y, p, q, args...; kwargs...)
-    RationalPoly(rational_fit(x, y, p, q, args...; kwargs...), p, q)
+function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
+    return RationalPolynomial(
+        view(sol.coeffs, 1:(sol.alg.num_degree + 1)),
+        vcat(
+            one(eltype(sol.coeffs)),
+            view(sol.coeffs, (sol.alg.num_degree + 2):(length(sol.coeffs)))
+        )
+    )(x)
 end
+
+# """
+# Auxiliary function used in nonlinear least squares
+# """
+# function make_rat_fun(p, q)
+#     return let p = p, q = q
+#         (y, x, a) -> begin
+#             num = view(a, 1:(p + 1))
+#             den = vcat(one(eltype(x)), view(a, (p + 2):(p + q + 1)))
+
+#             @inbounds @simd ivdep for i in eachindex(y)
+#                 y[i] = evalpoly(x[1, i], num) / evalpoly(x[1, i], den) - x[2, i]
+#             end
+
+#             return y
+#         end
+#     end
+# end
+
+# """
+# # Carry out a nonlinear least squares of rational polynomials
+
+# Find the polynomial coefficients that best approximate
+# the points given by `x` and `y`.
+# """
+# function rational_fit(x, y, p, q, args...; kwargs...)
+#     coefs0 = linear_rational_fit(x, y, p, q)
+#     sol = nonlinear_fit(
+#         make_rat_fun(p, q), stack((x, y); dims = 1), coefs0, args...;
+#         resid_prototype = Vector{eltype(coefs0)}(undef, length(x)), iip = Val(true), kwargs...
+#     )
+#     return sol.u
+# end

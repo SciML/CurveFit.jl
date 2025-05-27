@@ -38,6 +38,8 @@ end
 end
 
 function CommonSolve.init(prob::CurveFitProblem, ::__FallbackLinearFitAlgorithm; kwargs...)
+    @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
+                                         problems"
     return GenericLinearFitCache(prob, kwargs)
 end
 
@@ -45,10 +47,10 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
     b, a = __linear_fit_internal(
         cache.prob.xfun, cache.prob.x, cache.prob.yfun, cache.prob.y
     )
-    return LinearCurveFitSolution(__FallbackLinearFitAlgorithm(), (a, b), cache.prob)
+    return CurveFitSolution(__FallbackLinearFitAlgorithm(), (a, b), cache.prob)
 end
 
-function (sol::LinearCurveFitSolution{__FallbackLinearFitAlgorithm})(x::Number)
+function (sol::CurveFitSolution{__FallbackLinearFitAlgorithm})(x::Number)
     a, b = sol.coeffs
     return sol.prob.yfun_inverse(b + a * sol.prob.xfun(x))
 end
@@ -65,23 +67,25 @@ end
 function CommonSolve.init(
         prob::CurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
 )
+    @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
+                                         problems"
     @assert prob.xfun===identity "Polynomial fit only works with CurveFitProblem \
                                   with xfun = identity"
     @assert prob.yfun===identity "Polynomial fit only works with CurveFitProblem \
                                   with yfun = identity"
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
-    linear_problem = LinearProblem(vandermondepoly_cache, prob.y)
-    linsolve_cache = init(linear_problem, alg.linsolve_algorithm; kwargs...)
+    linsolve_cache = init(
+        LinearProblem(vandermondepoly_cache, prob.y), alg.linsolve_algorithm; kwargs...
+    )
     return PolynomialFitCache(vandermondepoly_cache, linsolve_cache, prob, alg, kwargs)
 end
 
 function CommonSolve.solve!(cache::PolynomialFitCache)
     __vandermondepoly!(cache.vandermondepoly_cache, cache.prob.x, cache.alg.degree)
     cache.linsolve_cache.A = cache.vandermondepoly_cache
-    sol = solve!(cache.linsolve_cache)
-    return LinearCurveFitSolution(cache.alg, sol.u, cache.prob)
+    return CurveFitSolution(cache.alg, solve!(cache.linsolve_cache).u, cache.prob)
 end
 
-function (sol::LinearCurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)
+function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)
     return evalpoly(x, sol.coeffs)
 end

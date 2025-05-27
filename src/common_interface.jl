@@ -32,13 +32,12 @@ function CurveFitProblem(
 )
     if nlfunc !== nothing
         @assert xfun===nothing "Nonlinear function must have xfun = identity"
+        @assert yfun===nothing "Nonlinear function must have yfun = identity"
     else
-        @assert xfun!==nothing "xfun must be provided for linear problems \
-                                (`nlfunc` is `nothing`)"
-        @assert yfun!==nothing "yfun must be provided for linear problems \
-                                (`nlfunc` is `nothing`)"
         @assert ndims(x)==ndims(y)==1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
+        xfun === nothing && (xfun = identity)
+        yfun === nothing && (yfun = identity)
     end
 
     return CurveFitProblem(
@@ -145,13 +144,30 @@ Represents a rational polynomial fitting algorithm with numerator degree `num_de
 and denominator degree `den_degree`. The internal polynomial fitting algorithm is
 determined by the `alg` keyword argument. If `alg` is `nothing` or a
 `AbstractNonlinearAlgorithm` (like solvers from NonlinearSolve.jl), it will use a
-nonlinear curve fitting approach. If `alg` is a `PolynomialFitAlgorithm`, it will use
-a polynomial fitting approach.
+nonlinear curve fitting approach. If `alg` is a `AbstractLinearAlgorithm`, it will use
+linear least squares fitting.
+
+## Linear Rational Polynomial Fitting
+
+In this case the following curve fit is done:
+
+```math
+y = \frac{p(x)}{q(x)}
+```
+
+where `p(x)` is a polynomial of degree `num_degree` and `q(x)` is a polynomial of degree
+`den_degree`. The linear case is solved by doing a least squares fit on:
+
+```math
+y * q(x) = p(x)
+```
+
+where the zero order term of `q(x)` is assumed to be 1.
 """
 @kwdef @concrete struct RationalPolynomialFitAlgorithm <: AbstractCurveFitAlgorithm
     num_degree::Int
     den_degree::Int
-    alg <: Union{Nothing, PolynomialFitAlgorithm, AbstractNonlinearAlgorithm} = nothing
+    alg <: Union{Nothing, AbstractLinearAlgorithm, AbstractNonlinearAlgorithm} = nothing
 end
 
 function RationalPolynomialFitAlgorithm(num_degree::Int, den_degree::Int)
@@ -164,14 +180,14 @@ struct __FallbackNonlinearFitAlgorithm <: AbstractCurveFitAlgorithm end
 
 # Solution Types
 """
-    LinearCurveFitSolution(alg, coeffs, prob)
+    CurveFitSolution(alg, coeffs, prob)
 
-Represents the solution to a linear curve fitting problem. This is a callable struct and
+Represents the solution to a curve fitting problem. This is a callable struct and
 can be used to evaluate the solution at a point. Exact evaluation mechanism depends on the
 algorithm used to solve the problem.
 """
-@concrete struct LinearCurveFitSolution <: AbstractCurveFitSolution
-    alg <: Union{Nothing, AbstractCurveFitAlgorithm}
+@concrete struct CurveFitSolution <: AbstractCurveFitSolution
+    alg <: AbstractCurveFitAlgorithm
     coeffs
     prob <: CurveFitProblem
 end

@@ -30,7 +30,7 @@ include("expsumfit.jl")
 export CurveFitProblem, LinearCurveFitProblem, LogCurveFitProblem, PowerCurveFitProblem,
        ExpCurveFitProblem
 export PolynomialFitAlgorithm, RationalPolynomialFitAlgorithm
-export LinearCurveFitSolution
+export CurveFitSolution
 
 export solve, solve!, init
 

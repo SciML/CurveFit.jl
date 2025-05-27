@@ -1,6 +1,6 @@
 name = "CurveFit"
 uuid = "5a033b19-8c74-5913-a970-47c3779ef25c"
-authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com> and contributors"]
+authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com>, Avik Pal <avikpal@mit.edu> and contributors"]
 version = "1.0.0"
 
 [deps]
