@@ -21,135 +21,67 @@ function __linear_fit_internal(
     return (a0, a1)
 end
 
-"""
-Fits a straight line through a set of points, `y = a₁ + a₂ * x`.
-"""
-function linear_fit(x::AbstractArray{T1}, y::AbstractArray{T2}) where {T1, T2}
-    return __linear_fit_internal(identity, x, identity, y)
-end
-
-"""
-Fits a log function through a set of points: `y = a₁ + a₂ * log(x)`.
-"""
-function log_fit(x, y)
-    return __linear_fit_internal(log, x, identity, y)
-end
-
-"""
-Fits a power law through a set of points: `y = a₁ * x^a₂`.
-"""
-function power_fit(x, y)
-    a, b = __linear_fit_internal(log, x, log, y)
-    return exp(a), b
-end
-
-"""
-Fits an `exp` through a set of points: `y = a₁ * exp(a₂ * x)`
-"""
-function exp_fit(x, y)
-    a, b = __linear_fit_internal(identity, x, log, y)
-    return exp(a), b
-end
-
-"""
-Create Vandermonde matrix for simple polynomial fit
-"""
-function vandermondepoly(x, n)
-    A = similar(x, length(x), n + 1)
+function __vandermondepoly!(A, x, n)
     A[:, 1] .= 1
-
     @inbounds for i in 1:n
         @simd ivdep for k in axes(A, 1)
             A[k, i + 1] = A[k, i] * x[k]
         end
     end
-    return A
+    return
 end
 
-"""
-Fits a polynomial of degree `n` through a set of points.
-
-Simple algorithm, doesn't use orthogonal polynomials or any such thing and therefore
-unconditioned matrices are possible. Use it only for low degree polynomials.
-
-This function returns a the coefficients of the polynomial.
-"""
-poly_fit(x, y, n) = qr(vandermondepoly(x, n)) \ y
-
-"""
-High Level interface for fitting straight lines
-"""
-struct LinearFit{T <: Number} <: AbstractLeastSquares
-    coefs::NTuple{2, T}
-    LinearFit{T}(coefs) where {T <: Number} = new((coefs[1], coefs[2]))
-    LinearFit{T}(c1, c2) where {T <: Number} = new((c1, c2))
-end
-function LinearFit(x::AbstractVector{T}, y::AbstractVector{T}) where {T <: Number}
-    LinearFit{T}(linear_fit(x, y))
+# Default Solver
+@concrete struct GenericLinearFitCache
+    prob <: LinearCurveFitProblem
+    kwargs
 end
 
-"""
-High Level interface for fitting log laws
-"""
-struct LogFit{T <: Number} <: AbstractLeastSquares
-    coefs::NTuple{2, T}
-
-    LogFit{T}(coefs) where {T <: Number} = new((coefs[1], coefs[2]))
-    LogFit{T}(c1, c2) where {T <: Number} = new((c1, c2))
+function CommonSolve.init(prob::LinearCurveFitProblem, ::Nothing; kwargs...)
+    return GenericLinearFitCache(prob, kwargs)
 end
 
-function LogFit(x::AbstractVector{T}, y::AbstractVector{T}) where {T <: Number}
-    return LogFit{T}(log_fit(x, y))
+function CommonSolve.solve!(cache::GenericLinearFitCache)
+    b, a = __linear_fit_internal(
+        cache.prob.xfun, cache.prob.x, cache.prob.yfun, cache.prob.y
+    )
+    return LinearCurveFitSolution(nothing, (a, b), cache.prob)
 end
 
-"""
-High Level interface for fitting power laws
-"""
-struct PowerFit{T <: Number} <: AbstractLeastSquares
-    coefs::NTuple{2, T}
-
-    PowerFit{T}(coefs) where {T <: Number} = new((coefs[1], coefs[2]))
-    PowerFit{T}(c1, c2) where {T <: Number} = new((c1, c2))
+function (sol::LinearCurveFitSolution{<:Nothing})(x::Number)
+    a, b = sol.coeffs
+    return sol.prob.yfun_inverse(b + a * sol.prob.xfun(x))
 end
 
-function PowerFit(x::AbstractVector{T}, y::AbstractVector{T}) where {T <: Number}
-    return PowerFit{T}(power_fit(x, y))
+# Polynomial Fit
+@concrete struct PolynomialFitCache
+    vandermondepoly_cache <: AbstractMatrix
+    linsolve_cache
+    prob <: LinearCurveFitProblem
+    alg <: PolynomialFitAlgorithm
+    kwargs
 end
 
-"""
-High Level interface for fitting exp laws
-"""
-struct ExpFit{T <: Number} <: AbstractLeastSquares
-    coefs::NTuple{2, T}
-
-    ExpFit{T}(coefs) where {T <: Number} = new((coefs[1], coefs[2]))
-    ExpFit{T}(c1, c2) where {T <: Number} = new((c1, c2))
+function CommonSolve.init(
+        prob::LinearCurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
+)
+    @assert prob.xfun===identity "Polynomial fit only works with LinearCurveFitProblem \
+                                  with xfun = identity"
+    @assert prob.yfun===identity "Polynomial fit only works with LinearCurveFitProblem \
+                                  with yfun = identity"
+    vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
+    linear_problem = LinearProblem(vandermondepoly_cache, prob.y)
+    linsolve_cache = init(linear_problem, alg.linsolve_algorithm; kwargs...)
+    return PolynomialFitCache(vandermondepoly_cache, linsolve_cache, prob, alg, kwargs)
 end
 
-function ExpFit(x::AbstractVector{T}, y::AbstractVector{T}) where {T <: Number}
-    return ExpFit{T}(exp_fit(x, y))
+function CommonSolve.solve!(cache::PolynomialFitCache)
+    __vandermondepoly!(cache.vandermondepoly_cache, cache.prob.x, cache.alg.degree)
+    cache.linsolve_cache.A = cache.vandermondepoly_cache
+    sol = solve!(cache.linsolve_cache)
+    return LinearCurveFitSolution(cache.alg, sol.u, cache.prob)
 end
 
-"""
-# Generic interface for curve fitting.
-
-The same function `curve_fit` can be used to fit the data depending on fit type,
-which is specified in the first parameter. This function returns an object that
-can be used to estimate the value of the fitting model using function `apply_fit`.
-
-## A few examples:
-
- * `f = curve_fit(LinearFit, x, y)`
- * `f = curve_fit(Polynomial, x, y, n)`
-
-Other types of fit include: LogFit, PowerFit, ExpFit, LinearKingFit, KingFit, RationalPoly.
-See the documentation for details.
-"""
-curve_fit(::Type{T}, x, y) where {T <: AbstractLeastSquares} = T(x, y)
-curve_fit(::Type{T}, x, y, args...) where {T <: AbstractLeastSquares} = T(x, y, args...)
-curve_fit(::Type{Polynomial}, x, y, n = 1) = Polynomial(poly_fit(x, y, n))
-
-(f::LinearFit)(x) = f.coefs[1] + f.coefs[2] * x
-(f::PowerFit)(x) = f.coefs[1] * x^f.coefs[2]
-(f::LogFit)(x) = f.coefs[1] + f.coefs[2] * log(x)
-(f::ExpFit)(x) = f.coefs[1] * exp(f.coefs[2] * x)
+function (sol::LinearCurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)
+    return evalpoly(x, sol.coeffs)
+end
