@@ -16,6 +16,14 @@ end
     kwargs
 end
 
+@concrete struct NonlinearRationalFitCache
+    initial_guess_cache <: Union{Nothing, LinearRationalFitCache}
+    nonlinear_cache
+    prob <: CurveFitProblem
+    alg <: RationalPolynomialFitAlgorithm
+    kwargs
+end
+
 function CommonSolve.init(
         prob::CurveFitProblem, alg::RationalPolynomialFitAlgorithm; kwargs...
 )
@@ -26,17 +34,42 @@ function CommonSolve.init(
     @assert prob.yfun===identity "Rational polynomial fit only works with \
                                   yfun = identity"
 
-    if alg.alg isa AbstractLinearAlgorithm
-        @assert prob.u0 === nothing "Rational polynomial fit doesn't support initial \
-                                     guess (u0) specification"
+    coeffs_length = alg.num_degree + alg.den_degree + 1
 
-        A = similar(prob.x, length(prob.x), alg.num_degree + alg.den_degree + 1)
+    if alg.alg isa AbstractLinearAlgorithm
+        @assert prob.u0===nothing "Rational polynomial fit doesn't support initial \
+                                   guess (u0) specification"
+
+        A = similar(prob.x, length(prob.x), coeffs_length)
         return LinearRationalFitCache(
             A, init(LinearProblem(A, prob.y), alg.alg; kwargs...), prob, alg, kwargs
         )
     end
 
-    error("TODO: Nonlinear rational polynomial fitting is not implemented yet")
+    initial_guess_cache = if prob.u0 !== nothing
+        nothing
+    else
+        A = similar(prob.x, length(prob.x), coeffs_length)
+        LinearRationalFitCache(
+            A, init(LinearProblem(A, prob.y), alg.alg; kwargs...), prob, alg, kwargs
+        )
+    end
+    nonlinear_cache = init(
+        NonlinearCurveFitProblem(
+            NonlinearFunction{true}(
+                __rational_fit_residual!(alg.num_degree, alg.den_degree);
+                resid_prototype = similar(prob.x)
+            ),
+            similar(prob.x, coeffs_length),
+            prob.x,
+            prob.y
+        ),
+        __FallbackNonlinearFitAlgorithm(alg.alg);
+        kwargs...
+    )
+    return NonlinearRationalFitCache(
+        initial_guess_cache, nonlinear_cache, prob, alg, kwargs
+    )
 end
 
 function __linear_rational_matrix!(A, x, y, p, q)
@@ -52,6 +85,23 @@ function __linear_rational_matrix!(A, x, y, p, q)
     return
 end
 
+function __rational_fit_residual!(p::Integer, q::Integer)
+    return let p = p, q = q
+        (resid, coeffs, x) -> __rational_fit_residual!(resid, coeffs, x, p, q)
+    end
+end
+
+function __rational_fit_residual!(resid, coeffs, x, p::Integer, q::Integer)
+    num = view(coeffs, 1:(p + 1))
+    den = vcat(one(eltype(x)), view(coeffs, (p + 2):(p + q + 1)))
+
+    @inbounds @simd ivdep for i in eachindex(resid)
+        resid[i] = evalpoly(x[i], num) / evalpoly(x[i], den)
+    end
+
+    return resid
+end
+
 function CommonSolve.solve!(cache::LinearRationalFitCache)
     __linear_rational_matrix!(
         cache.mat, cache.prob.x, cache.prob.y, cache.alg.num_degree, cache.alg.den_degree
@@ -59,6 +109,18 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
     cache.linsolve_cache.A = cache.mat
     sol = solve!(cache.linsolve_cache)
     return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode)
+end
+
+function CommonSolve.solve!(cache::NonlinearRationalFitCache)
+    u0 = if cache.initial_guess_cache === nothing
+        cache.prob.u0
+    else
+        solve!(cache.initial_guess_cache).coeffs
+    end
+
+    SciMLBase.reinit!(cache.nonlinear_cache, u0)
+    sol = solve!(cache.nonlinear_cache)
+    return CurveFitSolution(cache.alg, sol.coeffs, cache.prob, sol.retcode, sol.original)
 end
 
 function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
@@ -70,36 +132,3 @@ function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
         )
     )(x)
 end
-
-# """
-# Auxiliary function used in nonlinear least squares
-# """
-# function make_rat_fun(p, q)
-#     return let p = p, q = q
-#         (y, x, a) -> begin
-#             num = view(a, 1:(p + 1))
-#             den = vcat(one(eltype(x)), view(a, (p + 2):(p + q + 1)))
-
-#             @inbounds @simd ivdep for i in eachindex(y)
-#                 y[i] = evalpoly(x[1, i], num) / evalpoly(x[1, i], den) - x[2, i]
-#             end
-
-#             return y
-#         end
-#     end
-# end
-
-# """
-# # Carry out a nonlinear least squares of rational polynomials
-
-# Find the polynomial coefficients that best approximate
-# the points given by `x` and `y`.
-# """
-# function rational_fit(x, y, p, q, args...; kwargs...)
-#     coefs0 = linear_rational_fit(x, y, p, q)
-#     sol = nonlinear_fit(
-#         make_rat_fun(p, q), stack((x, y); dims = 1), coefs0, args...;
-#         resid_prototype = Vector{eltype(coefs0)}(undef, length(x)), iip = Val(true), kwargs...
-#     )
-#     return sol.u
-# end
