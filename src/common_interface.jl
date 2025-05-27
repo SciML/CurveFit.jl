@@ -31,6 +31,11 @@ specific solver documentation for more details.
     u0 <: Union{Nothing, AbstractArray}
 end
 
+function SciMLBase.isinplace(prob::CurveFitProblem)
+    !is_nonlinear_problem(prob) && return false
+    return SciMLBase.isinplace(prob.nlfunc)
+end
+
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
 function CurveFitProblem(
@@ -134,11 +139,11 @@ following optimization problem is solved:
 If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
 ideally a `NonlinearFunction` from [`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
 """
-function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y)
+function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing)
     return CurveFitProblem(x, y; nlfunc = f, u0 = u0)
 end
-function NonlinearCurveFitProblem(f::F, u0, x, y) where {F}
-    return NonlinearCurveFitProblem(NonlinearFunction(f), x, y, u0)
+function NonlinearCurveFitProblem(f::F, u0, x, y = nothing) where {F}
+    return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y)
 end
 
 # Algorithms
@@ -195,6 +200,11 @@ y * q(x) = p(x)
 ```
 
 where the zero order term of `q(x)` is assumed to be 1.
+
+## Nonlinear Rational Polynomial Fitting
+
+If an `u0` is not provided to the problem, then we will use linear least squares for an
+initial guess.
 """
 @kwdef @concrete struct RationalPolynomialFitAlgorithm <: AbstractCurveFitAlgorithm
     num_degree::Int
@@ -208,7 +218,9 @@ end
 
 ## Internal types for dispatch
 struct __FallbackLinearFitAlgorithm <: AbstractCurveFitAlgorithm end
-struct __FallbackNonlinearFitAlgorithm <: AbstractCurveFitAlgorithm end
+@concrete struct __FallbackNonlinearFitAlgorithm <: AbstractCurveFitAlgorithm
+    alg <: Union{Nothing, AbstractNonlinearAlgorithm}
+end
 
 # Solution Types
 """
@@ -223,14 +235,27 @@ algorithm used to solve the problem.
     coeffs
     prob <: CurveFitProblem
     retcode::ReturnCode.T
+    original
+end
+
+function CurveFitSolution(alg, coeffs, prob, retcode)
+    return CurveFitSolution(alg, coeffs, prob, retcode, nothing)
 end
 
 # Common Solve Interface
-function CommonSolve.solve(prob::AbstractCurveFitProblem; kwargs...)
-    return solve(
+function CommonSolve.init(prob::AbstractCurveFitProblem; kwargs...)
+    return init(
         prob,
-        is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm() :
+        is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm(nothing) :
         __FallbackLinearFitAlgorithm();
         kwargs...
     )
+end
+
+function CommonSolve.init(
+        prob::AbstractCurveFitProblem, alg::AbstractNonlinearAlgorithm; kwargs...
+)
+    @assert is_nonlinear_problem(prob) "Nonlinear algorithm can only be used with \
+                                       nonlinear problems"
+    return init(prob, __FallbackNonlinearFitAlgorithm(alg); kwargs...)
 end

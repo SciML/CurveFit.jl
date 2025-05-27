@@ -1,14 +1,22 @@
-# @testitem "Nonlinear Least Squares: Linear Problem 1" begin
-#     x = 1.0:10.0
-#     a0 = [3.0, 2.0, 1.0]
-#     fun7(x, a) = @. a[1] + a[2] * x + a[3] * x^2
-#     y = fun7(x, a0)
+@testitem "Nonlinear Least Squares: Linear Problem 1" begin
+    using SciMLBase
 
-#     a = nonlinear_fit(fun7, x, [0.5, 0.5, 0.5]; target = y).u
-#     @test a[1]≈a0[1] rtol=1e-7
-#     @test a[2]≈a0[2] rtol=1e-7
-#     @test a[3]≈a0[3] rtol=1e-7
-# end
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 1.0]
+
+    fun7(a, x) = @. a[1] + a[2] * x + a[3] * x^2
+    y = fun7(a0, x)
+
+    prob = NonlinearCurveFitProblem(fun7, [0.5, 0.5, 0.5], x, y)
+    sol = solve(prob)
+
+    @test sol.coeffs ≈ a0
+    @test SciMLBase.successful_retcode(sol.retcode)
+
+    @testset for val in (0.0, 1.5, 4.5, 10.0)
+        @test sol(val) ≈ fun7(a0, val)
+    end
+end
 
 # @testitem "Nonlinear Least Squares: Nonlinear Problem 1" begin
 #     x = 1.0:10.0

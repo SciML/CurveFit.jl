@@ -1,90 +1,63 @@
-# struct NonlinearFunctionWrapper{F, T}
-#     f::F
-#     target::T
-# end
+@concrete struct NonlinearFunctionWrapper{iip}
+    target
+    f
+end
 
-# (nlf::NonlinearFunctionWrapper{F, Nothing})(p, X) where {F} = nlf.f(X, p)
-# (nlf::NonlinearFunctionWrapper{F, T})(p, X) where {F, T} = nlf.f(X, p) .- nlf.target
-# function (nlf::NonlinearFunctionWrapper{F, Nothing})(dp, p, X) where {F}
-#     nlf.f(dp, X, p)
-#     return dp
-# end
-# function (nlf::NonlinearFunctionWrapper{F, T})(dp, p, X) where {F, T}
-#     nlf.f(dp, X, p)
-#     dp .-= nlf.target
-#     return dp
-# end
+SciMLBase.isinplace(::NonlinearFunctionWrapper{iip}) where {iip} = iip
 
-# @doc doc"""
-#     nonlinear_fit(
-#         f::F, data, p0, alg = nothing;
-#         target = nothing, iip = nothing, solve_kwargs = (;), kwargs...
-#     ) where {F}
+function __wrap_nonlinear_function(f::NonlinearFunction, target)
+    internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, f.f)
+    @set! f.f = internal_f
+    return f
+end
 
-# Nonlinear least squares fitting of data. This function is a wrapper around
-# [`NonlinearLeastSquaresProblem`](@ref) and [`solve`](@ref) from the
-# [`NonlinearSolve.jl`](https://github.com/SciML/NonlinearSolve.jl) package. We are fitting
-# the function `f` to the data `data` using the initial guess `p0`.
+(nlf::NonlinearFunctionWrapper{false, Nothing})(p, X) = nlf.f(p, X)
+(nlf::NonlinearFunctionWrapper{false})(p, X) = nlf.f(p, X) .- nlf.target
 
-# ```math
-# \begin{equation}
-#     \underset{p}{\text{argmin}} ~ \| f(\text{data}, p) - \text{target} \|_2
-# \end{equation}
-# ```
+(nlf::NonlinearFunctionWrapper{true, Nothing})(resid, p, X) = nlf.f(resid, p, X)
+function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
+    nlf.f(resid, p, X)
+    resid .-= nlf.target
+    return resid
+end
 
-# If `target` is not provided, then it is treated as a zero vector.
+# NLLS Solvers
+@concrete struct GenericNonlinearCurveFitCache
+    prob <: CurveFitProblem
+    cache
+    alg
+    kwargs
+end
 
-# ## Parameters
+function CommonSolve.init(
+        prob::CurveFitProblem, alg::__FallbackNonlinearFitAlgorithm; kwargs...
+)
+    @assert is_nonlinear_problem(prob) "Nonlinear curve fitting only works with nonlinear \
+                                        problems"
+    @assert prob.u0 !== nothing "Nonlinear curve fitting requires an initial guess (u0)"
 
-#  * `f` the function that should be fitted
-#  * `data` the data to be fitted
-#  * `p0` the initial guess for the parameters
-#  * `alg` the algorithm to be used for solving the problem. If not provided, the default
-#    poly-algorithm is used.
+    return GenericNonlinearCurveFitCache(
+        prob,
+        init(
+            NonlinearLeastSquaresProblem(
+                __wrap_nonlinear_function(prob.nlfunc, prob.y), prob.u0, prob.x
+            ),
+            alg.alg;
+            kwargs...
+        ),
+        alg,
+        kwargs
+    )
+end
 
-# ## Keyword arguments
+function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
+    sol = solve!(cache.cache)
+    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode, sol)
+end
 
-#  * `iip` determines if the function is inplace or not. If not provided, we automatically
-#    determine this.
-#  * `target` the target value to be fitted. If not provided, it is treated as a zero vector.
-#  * `kwargs` are passed directly to the [`NonlinearLeastSquaresProblem`](@ref) constructor.
-#  * `solve_kwargs` are passed directly to the `solve` function. See the
-#    [documentation](https://docs.sciml.ai/NonlinearSolve/stable/basics/solve/) for more
-#    details.
-
-# !!! warning
-
-#     The return is type unstable if `iip` is not provided.
-
-# ## Return values
-
-# A NonlinearSolution object is returned.
-# """
-# function nonlinear_fit(
-#         f::F,
-#         data,
-#         p0,
-#         alg = nothing;
-#         iip::Union{Nothing, Val{true}, Val{false}} = nothing,
-#         target = nothing,
-#         solve_kwargs = (;),
-#         kwargs...
-# ) where {F}
-#     iip === nothing && (iip = any(==(3), SciMLBase.numargs(f)))
-
-#     return solve(
-#         NonlinearLeastSquaresProblem(
-#             NonlinearFunction{SciMLBase._unwrap_val(iip)}(
-#                 NonlinearFunctionWrapper(f, target);
-#                 kwargs...
-#             ),
-#             p0,
-#             data
-#         ),
-#         alg;
-#         solve_kwargs...
-#     )
-# end
+function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
+    return sol.prob.nlfunc(sol.coeffs, x)
+end
 
 # """
 #    a = secant_nls_fit(x, y, fun, a0[[, eps,] maxiter])
