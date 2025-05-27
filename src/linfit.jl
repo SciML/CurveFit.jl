@@ -47,7 +47,9 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
     b, a = __linear_fit_internal(
         cache.prob.xfun, cache.prob.x, cache.prob.yfun, cache.prob.y
     )
-    return CurveFitSolution(__FallbackLinearFitAlgorithm(), (a, b), cache.prob)
+    return CurveFitSolution(
+        __FallbackLinearFitAlgorithm(), (a, b), cache.prob, ReturnCode.Success
+    )
 end
 
 function (sol::CurveFitSolution{__FallbackLinearFitAlgorithm})(x::Number)
@@ -83,7 +85,8 @@ end
 function CommonSolve.solve!(cache::PolynomialFitCache)
     __vandermondepoly!(cache.vandermondepoly_cache, cache.prob.x, cache.alg.degree)
     cache.linsolve_cache.A = cache.vandermondepoly_cache
-    return CurveFitSolution(cache.alg, solve!(cache.linsolve_cache).u, cache.prob)
+    sol = solve!(cache.linsolve_cache)
+    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode)
 end
 
 function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)

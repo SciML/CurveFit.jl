@@ -190,6 +190,7 @@ algorithm used to solve the problem.
     alg <: AbstractCurveFitAlgorithm
     coeffs
     prob <: CurveFitProblem
+    retcode::ReturnCode.T
 end
 
 # Common Solve Interface

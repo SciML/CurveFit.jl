@@ -54,7 +54,8 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
         cache.mat, cache.prob.x, cache.prob.y, cache.alg.num_degree, cache.alg.den_degree
     )
     cache.linsolve_cache.A = cache.mat
-    return CurveFitSolution(cache.alg, solve!(cache.linsolve_cache).u, cache.prob)
+    sol = solve!(cache.linsolve_cache)
+    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode)
 end
 
 function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)

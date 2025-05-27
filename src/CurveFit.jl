@@ -6,7 +6,7 @@ using InverseFunctions: inverse
 using Markdown: @doc_str
 
 using LinearSolve: LinearSolve
-using SciMLBase: AbstractNonlinearAlgorithm, AbstractLinearAlgorithm
+using SciMLBase: AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode
 
 using SciMLBase
 using NonlinearSolve
