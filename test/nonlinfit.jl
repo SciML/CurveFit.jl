@@ -10,7 +10,7 @@
     prob = NonlinearCurveFitProblem(fun7, [0.5, 0.5, 0.5], x, y)
     sol = solve(prob)
 
-    @test sol.coeffs ≈ a0
+    @test sol.u ≈ a0
     @test SciMLBase.successful_retcode(sol.retcode)
 
     @testset for val in (0.0, 1.5, 4.5, 10.0)

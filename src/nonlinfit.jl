@@ -61,7 +61,7 @@ function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
-    return sol.prob.nlfunc(sol.coeffs, x)
+    return sol.prob.nlfunc(sol.u, x)
 end
 
 # """

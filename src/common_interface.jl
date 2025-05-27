@@ -6,27 +6,18 @@ abstract type AbstractCurveFitSolution end
 
 # Core Problem Types
 @doc doc"""
-    CurveFitProblem(
-        x, y;
-        xfun=identity, yfun=identity, yfun_inverse=inverse(yfun), nlfunc=nothing,
-        u0=nothing
-    )
+    CurveFitProblem(x, y; nlfunc=nothing, u0=nothing)
 
-Represents a curve fitting problem where `x` and `y` are the data points to fit. It is not
-recommende to use this constructor directly, instead use one of the specialized
-curve fitting problem constructors like [`LinearCurveFitProblem`](@ref),
-[`LogCurveFitProblem`](@ref), [`PowerCurveFitProblem`](@ref),
-[`ExpCurveFitProblem`](@ref) or [`NonlinearCurveFitProblem`](@ref).
+Represents a curve fitting problem where `x` and `y` are the data points to fit.
 
 Certain algorithms may require an initial guess `u0` for the coefficients to fit. See
 specific solver documentation for more details.
+
+See also [`NonlinearCurveFitProblem`](@ref).
 """
 @concrete struct CurveFitProblem <: AbstractCurveFitProblem
     x <: AbstractArray
     y <: Union{AbstractArray, Nothing}
-    xfun <: Union{Nothing, Function}
-    yfun <: Union{Nothing, Function}
-    yfun_inverse <: Union{Nothing, Function}
     nlfunc <: Union{Nothing, NonlinearFunction}
     u0 <: Union{Nothing, AbstractArray}
 end
@@ -38,90 +29,14 @@ end
 
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
-function CurveFitProblem(
-        x, y; xfun = nothing, yfun = nothing, nlfunc = nothing, u0 = nothing
-)
-    if nlfunc !== nothing
-        @assert xfun===nothing "Nonlinear function must have xfun = identity"
-        @assert yfun===nothing "Nonlinear function must have yfun = identity"
-    else
-        @assert y isa AbstractArray "y must be an array for linear problems"
+function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing)
+    if nlfunc === nothing
         @assert ndims(x)==ndims(y)==1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
-        xfun === nothing && (xfun = identity)
-        yfun === nothing && (yfun = identity)
     end
 
-    return CurveFitProblem(
-        x, y, xfun, yfun, yfun === nothing ? nothing : inverse(yfun), nlfunc, u0
-    )
+    return CurveFitProblem(x, y, nlfunc, u0)
 end
-
-### Helpful aliases
-"""
-    LinearCurveFitProblem(x, y; xfun = identity, yfun = identity)
-
-Represents a linear curve fitting problem where `x` and `y` are the data points to fit.
-We want to solve for `a` and `b` such that:
-
-```math
-yfun(y) = a * xfun(x) + b
-```
-
-Note that this is a general problem specification of a curve fitting problem which can
-be converted to a linear fit in a specific function space by choosing appropriate
-`xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
-original space (can be specified by defining `InverseFunctions.inverse`).
-"""
-function LinearCurveFitProblem(x, y; xfun = identity, yfun = identity, u0 = nothing)
-    return CurveFitProblem(x, y; xfun, yfun, u0)
-end
-
-@doc doc"""
-    LogCurveFitProblem(x, y)
-
-Represents a log curve fitting problem where `x` and `y` are the data points to fit.
-We want to solve for `a` and `b` such that:
-
-```math
-y = a * log(x) + b
-```
-"""
-LogCurveFitProblem(x, y) = LinearCurveFitProblem(x, y; xfun = log, yfun = identity)
-
-@doc doc"""
-    PowerCurveFitProblem(x, y)
-Represents a power curve fitting problem where `x` and `y` are the data points to fit.
-We want to solve for `a` and `b` such that:
-
-```math
-y = b * x^a
-```
-
-This is equivalent to a linear fit in log-log space, i.e.,
-
-```math
-log(y) = a * log(x) + log(b)
-"""
-PowerCurveFitProblem(x, y) = LinearCurveFitProblem(x, y; xfun = log, yfun = log)
-
-@doc doc"""
-    ExpCurveFitProblem(x, y)
-
-Represents an exponential curve fitting problem where `x` and `y` are the data points to fit.
-We want to solve for `a` and `b` such that:
-
-```math
-y = b * exp(a * x)
-```
-
-This is equivalent to a linear fit in log-linear space, i.e.,
-
-```math
-log(y) = a * x + log(b)
-```
-"""
-ExpCurveFitProblem(x, y) = LinearCurveFitProblem(x, y; xfun = identity, yfun = log)
 
 @doc doc"""
     NonlinearCurveFitProblem(f, u0, x, y)
@@ -147,6 +62,101 @@ function NonlinearCurveFitProblem(f::F, u0, x, y = nothing) where {F}
 end
 
 # Algorithms
+@concrete struct LinearCurveFitAlgorithm <: AbstractCurveFitAlgorithm
+    xfun <: Function
+    yfun <: Function
+    yfun_inverse <: Function
+end
+
+"""
+    LinearCurveFitAlgorithm(;
+        xfun = identity, yfun = identity, yfun_inverse = inverse(yfun)
+    )
+
+Represents a linear curve fitting algorithm where `x` and `y` are the data points to fit.
+We want to solve for `a` and `b` such that:
+
+```math
+yfun(y) = a * xfun(x) + b
+```
+
+Note that this is a general problem specification of a curve fitting problem which can
+be converted to a linear fit in a specific function space by choosing appropriate
+`xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
+original space (can be specified by defining `InverseFunctions.inverse`).
+"""
+function LinearCurveFitAlgorithm(;
+        xfun = identity, yfun = identity, yfun_inverse = inverse(yfun)
+)
+    return LinearCurveFitAlgorithm(xfun, yfun, yfun_inverse)
+end
+
+@doc doc"""
+    LogCurveFitAlgorithm()
+
+Represents a log curve fitting algorithm where `x` and `y` are the data points to fit.
+We want to solve for `a` and `b` such that:
+
+```math
+y = a * log(x) + b
+```
+"""
+LogCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = identity)
+
+@doc doc"""
+    PowerCurveFitAlgorithm()
+
+Represents a power curve fitting algorithm where `x` and `y` are the data points to fit.
+We want to solve for `a` and `b` such that:
+
+```math
+y = b * x^a
+```
+
+This is equivalent to a linear fit in log-log space, i.e.,
+
+```math
+log(y) = a * log(x) + log(b)
+"""
+PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
+
+@doc doc"""
+    ExpCurveFitAlgorithm()
+
+Represents an exponential curve fitting algorithm where `x` and `y` are the data points to
+fit. We want to solve for `a` and `b` such that:
+
+```math
+y = b * exp(a * x)
+```
+
+This is equivalent to a linear fit in log-linear space, i.e.,
+
+```math
+log(y) = a * x + log(b)
+```
+"""
+ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
+
+@doc doc"""
+    KingCurveFitAlgorithm()
+
+Represents a king curve fitting problem where `x` and `y` are the data points to fit.
+We want to solve for `a` and `b` according to original King's law (1910) that represents
+the relationship between voltage (E) and velocity (U) in a hotwire anemometer:
+
+```math
+E^2 = A + B * U^0.5
+```
+
+or
+
+```math
+x^2 = A + B * y^0.5
+```
+"""
+KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
+
 @doc doc"""
     PolynomialFitAlgorithm(degree::Int)
     PolynomialFitAlgorithm(;
@@ -155,7 +165,7 @@ end
     )
 
 Represents a polynomial fitting algorithm of degree `degree`. Only applicable to
-[`LinearCurveFitProblem`](@ref)s.
+[`LinearCurveFitAlgorithm`](@ref)s.
 
 !!! tip
 
@@ -232,7 +242,7 @@ algorithm used to solve the problem.
 """
 @concrete struct CurveFitSolution <: AbstractCurveFitSolution
     alg <: AbstractCurveFitAlgorithm
-    coeffs
+    u
     prob <: CurveFitProblem
     retcode::ReturnCode.T
     original
@@ -247,7 +257,7 @@ function CommonSolve.init(prob::AbstractCurveFitProblem; kwargs...)
     return init(
         prob,
         is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm(nothing) :
-        __FallbackLinearFitAlgorithm();
+        error("Default algorithm is not defined for linear problems");
         kwargs...
     )
 end

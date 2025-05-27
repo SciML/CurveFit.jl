@@ -29,10 +29,6 @@ function CommonSolve.init(
 )
     @assert !is_nonlinear_problem(prob) "Rational polynomial fitting doesn't work with \
                                          nlfunc specification."
-    @assert prob.xfun===identity "Rational polynomial fit only works with \
-                                  xfun = identity"
-    @assert prob.yfun===identity "Rational polynomial fit only works with \
-                                  yfun = identity"
 
     coeffs_length = alg.num_degree + alg.den_degree + 1
 
@@ -115,20 +111,20 @@ function CommonSolve.solve!(cache::NonlinearRationalFitCache)
     u0 = if cache.initial_guess_cache === nothing
         cache.prob.u0
     else
-        solve!(cache.initial_guess_cache).coeffs
+        solve!(cache.initial_guess_cache).u
     end
 
     SciMLBase.reinit!(cache.nonlinear_cache, u0)
     sol = solve!(cache.nonlinear_cache)
-    return CurveFitSolution(cache.alg, sol.coeffs, cache.prob, sol.retcode, sol.original)
+    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode, sol.original)
 end
 
 function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
     return RationalPolynomial(
-        view(sol.coeffs, 1:(sol.alg.num_degree + 1)),
+        view(sol.u, 1:(sol.alg.num_degree + 1)),
         vcat(
-            one(eltype(sol.coeffs)),
-            view(sol.coeffs, (sol.alg.num_degree + 2):(length(sol.coeffs)))
+            one(eltype(sol.u)),
+            view(sol.u, (sol.alg.num_degree + 2):(length(sol.u)))
         )
     )(x)
 end

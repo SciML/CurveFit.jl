@@ -35,29 +35,30 @@ end
 @concrete struct GenericLinearFitCache
     prob <: CurveFitProblem
     kwargs
+    alg <: LinearCurveFitAlgorithm
 end
 
-function CommonSolve.init(prob::CurveFitProblem, ::__FallbackLinearFitAlgorithm; kwargs...)
+function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; kwargs...)
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
     @assert prob.u0 === nothing "Linear fit doesn't support initial guess (u0) \
                                  specification"
 
-    return GenericLinearFitCache(prob, kwargs)
+    return GenericLinearFitCache(prob, kwargs, alg)
 end
 
 function CommonSolve.solve!(cache::GenericLinearFitCache)
     b, a = __linear_fit_internal(
-        cache.prob.xfun, cache.prob.x, cache.prob.yfun, cache.prob.y
+        cache.alg.xfun, cache.prob.x, cache.alg.yfun, cache.prob.y
     )
     return CurveFitSolution(
-        __FallbackLinearFitAlgorithm(), (a, b), cache.prob, ReturnCode.Success
+        cache.alg, (a, b), cache.prob, ReturnCode.Success
     )
 end
 
-function (sol::CurveFitSolution{__FallbackLinearFitAlgorithm})(x::Number)
-    a, b = sol.coeffs
-    return sol.prob.yfun_inverse(b + a * sol.prob.xfun(x))
+function (sol::CurveFitSolution{<:LinearCurveFitAlgorithm})(x::Number)
+    a, b = sol.u
+    return sol.alg.yfun_inverse(b + a * sol.alg.xfun(x))
 end
 
 # Polynomial Fit
@@ -74,10 +75,6 @@ function CommonSolve.init(
 )
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
-    @assert prob.xfun===identity "Polynomial fit only works with CurveFitProblem \
-                                  with xfun = identity"
-    @assert prob.yfun===identity "Polynomial fit only works with CurveFitProblem \
-                                  with yfun = identity"
     @assert prob.u0 === nothing "Polynomial fit doesn't support initial guess \
                                  (u0) specification"
 
@@ -96,5 +93,5 @@ function CommonSolve.solve!(cache::PolynomialFitCache)
 end
 
 function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)
-    return evalpoly(x, sol.coeffs)
+    return evalpoly(x, sol.u)
 end
