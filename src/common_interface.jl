@@ -241,6 +241,12 @@ function RationalPolynomialFitAlgorithm(num_degree::Int, den_degree::Int)
     return RationalPolynomialFitAlgorithm(num_degree, den_degree, nothing)
 end
 
+@kwdef @concrete struct ExpSumFitAlgorithm <: AbstractCurveFitAlgorithm
+    n::Int
+    m::Int = 1
+    withconst::Bool = true
+end
+
 ## Internal types for dispatch
 struct __FallbackLinearFitAlgorithm <: AbstractCurveFitAlgorithm end
 @concrete struct __FallbackNonlinearFitAlgorithm <: AbstractCurveFitAlgorithm

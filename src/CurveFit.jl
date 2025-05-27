@@ -6,6 +6,7 @@ using InverseFunctions: inverse
 using Markdown: @doc_str
 using Setfield: @set!
 
+using LinearAlgebra: LinearAlgebra, eigvals
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
