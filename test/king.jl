@@ -5,7 +5,7 @@
     n = 0.5
     E = sqrt.(A .+ B * U .^ n)
 
-    fn(E) = ((E .^ 2 - A) / B) .^ (1 ./ n)
+    fn(E) = ((E .^ 2 .- A) / B) .^ (1 ./ n)
 
     prob = CurveFitProblem(E, U)
     sol = solve(prob, KingCurveFitAlgorithm())
@@ -15,18 +15,32 @@
     end
 end
 
-# @testitem "Modified King's Law" begin
-#     U = [range(1, stop = 20, length = 20);]
-#     A = 5.0
-#     B = 1.5
-#     n = 0.42
-#     E = sqrt.(A .+ B * U .^ n)
-#     fun6(E) = ((E^2 - A) / B)^(1 / n)
+@testitem "Modified King's Law" begin
+    using NonlinearSolve
 
-#     f = king_fit(E, U)
-#     @test f[1]≈A atol=1.0e-7
-#     @test f[2]≈B atol=1.0e-7
-#     @test f[3]≈n atol=1.0e-7
-#     f = curve_fit(KingFit, E, U)
-#     @test f(3.0)≈fun6(3.0) atol=1.0e-5
-# end
+    U = range(1, stop = 20, length = 20)
+    A = 5.0
+    B = 1.5
+    n = 0.42
+    E = sqrt.(A .+ B * U .^ n)
+
+    fn(E) = ((E .^ 2 .- A) ./ B) .^ (1 ./ n)
+
+    algs = [
+    # TODO: broken due to https://github.com/SciML/NonlinearSolve.jl/issues/504
+    # nothing,
+        LevenbergMarquardt()
+    ]
+    u0s = [nothing, fill(1.0, 3)]
+    for alg in algs, u0 in u0s
+        prob = CurveFitProblem(E, U; u0 = u0)
+        sol = solve(prob, ModifiedKingCurveFitAlgorithm(alg))
+
+        @test sol.u≈[A, B, n] atol=1.0e-8
+        @test SciMLBase.successful_retcode(sol.retcode)
+
+        @testset for val in range(minimum(E), stop = maximum(E), length = 10)
+            @test sol(val)≈fn(val) atol=1.0e-8
+        end
+    end
+end

@@ -158,6 +158,21 @@ x^2 = A + B * y^0.5
 KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
 
 @doc doc"""
+    ModifiedKingCurveFitAlgorithm(alg::Union{Nothing, AbstractNonlinearAlgorithm} = nothing)
+
+Similar to [`KingCurveFitAlgorithm`](@ref), but uses the modified King's law:
+
+```math
+E^2 = A + B * U^n
+```
+
+where `n` is also a parameter.
+"""
+@kwdef @concrete struct ModifiedKingCurveFitAlgorithm <: AbstractCurveFitAlgorithm
+    alg <: Union{Nothing, AbstractNonlinearAlgorithm} = nothing
+end
+
+@doc doc"""
     PolynomialFitAlgorithm(degree::Int)
     PolynomialFitAlgorithm(;
         degree::Int,

@@ -8,7 +8,7 @@
     prob = CurveFitProblem(x, y)
     sol = solve(prob, RationalPolynomialFitAlgorithm(2, 3, QRFactorization(ColumnNorm())))
 
-    @test sol.u ≈ [1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
+    @test sol.u≈[1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
 
     @testset for val in (0.0, 1.5, 4.5, 10.0)
         @test sol(val)≈r(val) atol=1.0e-8
@@ -32,7 +32,7 @@ end
         prob = CurveFitProblem(x, y; u0 = u0)
         sol = solve(prob, alg)
 
-        @test sol.u ≈ [1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
+        @test sol.u≈[1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
         @test SciMLBase.successful_retcode(sol.retcode)
 
         @testset for val in (0.0, 1.5, 4.5, 10.0)

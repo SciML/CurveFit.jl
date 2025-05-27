@@ -7,6 +7,36 @@ function (rpoly::RationalPolynomial)(x::Number)
     return evalpoly(x, rpoly.numerator) / evalpoly(x, rpoly.denominator)
 end
 
+function __linear_rational_matrix!(A, x, y, p, q)
+    @inbounds for i in axes(x, 1)
+        A[i, 1] = true
+        @simd ivdep for k in 1:p
+            A[i, k + 1] = x[i]^k
+        end
+        @simd ivdep for k in 1:q
+            A[i, p + 1 + k] = -y[i] * x[i]^k
+        end
+    end
+    return
+end
+
+function __rational_fit_residual!(p::Integer, q::Integer)
+    return let p = p, q = q
+        (resid, coeffs, x) -> __rational_fit_residual!(resid, coeffs, x, p, q)
+    end
+end
+
+function __rational_fit_residual!(resid, coeffs, x, p::Integer, q::Integer)
+    num = view(coeffs, 1:(p + 1))
+    den = vcat(one(eltype(x)), view(coeffs, (p + 2):(p + q + 1)))
+
+    @inbounds @simd ivdep for i in eachindex(resid)
+        resid[i] = evalpoly(x[i], num) / evalpoly(x[i], den)
+    end
+
+    return resid
+end
+
 # Common Solve Interface
 @concrete struct LinearRationalFitCache
     mat <: AbstractMatrix
@@ -66,36 +96,6 @@ function CommonSolve.init(
     return NonlinearRationalFitCache(
         initial_guess_cache, nonlinear_cache, prob, alg, kwargs
     )
-end
-
-function __linear_rational_matrix!(A, x, y, p, q)
-    @inbounds for i in axes(x, 1)
-        A[i, 1] = true
-        @simd ivdep for k in 1:p
-            A[i, k + 1] = x[i]^k
-        end
-        @simd ivdep for k in 1:q
-            A[i, p + 1 + k] = -y[i] * x[i]^k
-        end
-    end
-    return
-end
-
-function __rational_fit_residual!(p::Integer, q::Integer)
-    return let p = p, q = q
-        (resid, coeffs, x) -> __rational_fit_residual!(resid, coeffs, x, p, q)
-    end
-end
-
-function __rational_fit_residual!(resid, coeffs, x, p::Integer, q::Integer)
-    num = view(coeffs, 1:(p + 1))
-    den = vcat(one(eltype(x)), view(coeffs, (p + 2):(p + q + 1)))
-
-    @inbounds @simd ivdep for i in eachindex(resid)
-        resid[i] = evalpoly(x[i], num) / evalpoly(x[i], den)
-    end
-
-    return resid
 end
 
 function CommonSolve.solve!(cache::LinearRationalFitCache)
