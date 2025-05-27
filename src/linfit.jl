@@ -40,6 +40,9 @@ end
 function CommonSolve.init(prob::CurveFitProblem, ::__FallbackLinearFitAlgorithm; kwargs...)
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
+    @assert prob.u0 === nothing "Linear fit doesn't support initial guess (u0) \
+                                 specification"
+
     return GenericLinearFitCache(prob, kwargs)
 end
 
@@ -75,6 +78,9 @@ function CommonSolve.init(
                                   with xfun = identity"
     @assert prob.yfun===identity "Polynomial fit only works with CurveFitProblem \
                                   with yfun = identity"
+    @assert prob.u0 === nothing "Polynomial fit doesn't support initial guess \
+                                 (u0) specification"
+
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
     linsolve_cache = init(
         LinearProblem(vandermondepoly_cache, prob.y), alg.linsolve_algorithm; kwargs...

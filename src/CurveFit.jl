@@ -27,8 +27,8 @@ include("king.jl")
 include("expsumfit.jl")
 
 # Exported functions
-export CurveFitProblem, LinearCurveFitProblem, LogCurveFitProblem, PowerCurveFitProblem,
-       ExpCurveFitProblem
+export CurveFitProblem, LinearCurveFitProblem, NonlinearCurveFitProblem, LogCurveFitProblem,
+       PowerCurveFitProblem, ExpCurveFitProblem
 export PolynomialFitAlgorithm, RationalPolynomialFitAlgorithm
 export CurveFitSolution
 

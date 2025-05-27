@@ -27,6 +27,9 @@ function CommonSolve.init(
                                   yfun = identity"
 
     if alg.alg isa AbstractLinearAlgorithm
+        @assert prob.u0 === nothing "Rational polynomial fit doesn't support initial \
+                                     guess (u0) specification"
+
         A = similar(prob.x, length(prob.x), alg.num_degree + alg.den_degree + 1)
         return LinearRationalFitCache(
             A, init(LinearProblem(A, prob.y), alg.alg; kwargs...), prob, alg, kwargs

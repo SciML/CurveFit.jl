@@ -7,7 +7,9 @@ abstract type AbstractCurveFitSolution end
 # Core Problem Types
 @doc doc"""
     CurveFitProblem(
-        x, y; xfun=identity, yfun=identity, yfun_inverse=inverse(yfun), nlfunc=nothing
+        x, y;
+        xfun=identity, yfun=identity, yfun_inverse=inverse(yfun), nlfunc=nothing,
+        u0=nothing
     )
 
 Represents a curve fitting problem where `x` and `y` are the data points to fit. It is not
@@ -15,25 +17,30 @@ recommende to use this constructor directly, instead use one of the specialized
 curve fitting problem constructors like [`LinearCurveFitProblem`](@ref),
 [`LogCurveFitProblem`](@ref), [`PowerCurveFitProblem`](@ref),
 [`ExpCurveFitProblem`](@ref) or [`NonlinearCurveFitProblem`](@ref).
+
+Certain algorithms may require an initial guess `u0` for the coefficients to fit. See
+specific solver documentation for more details.
 """
 @concrete struct CurveFitProblem <: AbstractCurveFitProblem
     x <: AbstractArray
-    y <: AbstractArray
+    y <: Union{AbstractArray, Nothing}
     xfun <: Union{Nothing, Function}
     yfun <: Union{Nothing, Function}
     yfun_inverse <: Union{Nothing, Function}
     nlfunc <: Union{Nothing, NonlinearFunction}
+    u0 <: Union{Nothing, AbstractArray}
 end
 
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
 function CurveFitProblem(
-        x, y; xfun = nothing, yfun = nothing, nlfunc = nothing
+        x, y; xfun = nothing, yfun = nothing, nlfunc = nothing, u0 = nothing
 )
     if nlfunc !== nothing
         @assert xfun===nothing "Nonlinear function must have xfun = identity"
         @assert yfun===nothing "Nonlinear function must have yfun = identity"
     else
+        @assert y isa AbstractArray "y must be an array for linear problems"
         @assert ndims(x)==ndims(y)==1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
         xfun === nothing && (xfun = identity)
@@ -41,7 +48,7 @@ function CurveFitProblem(
     end
 
     return CurveFitProblem(
-        x, y, xfun, yfun, yfun === nothing ? nothing : inverse(yfun), nlfunc
+        x, y, xfun, yfun, yfun === nothing ? nothing : inverse(yfun), nlfunc, u0
     )
 end
 
@@ -59,10 +66,10 @@ yfun(y) = a * xfun(x) + b
 Note that this is a general problem specification of a curve fitting problem which can
 be converted to a linear fit in a specific function space by choosing appropriate
 `xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
-original space (can be specified by defining `InverseFunctions.inverse`)
+original space (can be specified by defining `InverseFunctions.inverse`).
 """
-function LinearCurveFitProblem(x, y; xfun = identity, yfun = identity)
-    return CurveFitProblem(x, y; xfun, yfun)
+function LinearCurveFitProblem(x, y; xfun = identity, yfun = identity, u0 = nothing)
+    return CurveFitProblem(x, y; xfun, yfun, u0)
 end
 
 @doc doc"""
@@ -111,6 +118,29 @@ log(y) = a * x + log(b)
 """
 ExpCurveFitProblem(x, y) = LinearCurveFitProblem(x, y; xfun = identity, yfun = log)
 
+@doc doc"""
+    NonlinearCurveFitProblem(f, u0, x, y)
+
+Nonlinear curve fitting problem where `f` is a nonlinear function to fit, `u0` is the
+initial guess for the coefficients, and `x` and `y` are the data points to fit. The
+following optimization problem is solved:
+
+```math
+\begin{equation}
+    \underset{u}{\text{argmin}} ~ \| f(u, x) - y \|_2
+\end{equation}
+```
+
+If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
+ideally a `NonlinearFunction` from [`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
+"""
+function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y)
+    return CurveFitProblem(x, y; nlfunc = f, u0 = u0)
+end
+function NonlinearCurveFitProblem(f::F, u0, x, y) where {F}
+    return NonlinearCurveFitProblem(NonlinearFunction(f), x, y, u0)
+end
+
 # Algorithms
 @doc doc"""
     PolynomialFitAlgorithm(degree::Int)
@@ -124,8 +154,10 @@ Represents a polynomial fitting algorithm of degree `degree`. Only applicable to
 
 !!! tip
 
-    For ill-conditioned problems, it is recommended to use a linear solver algorithm
-    such as `QRFactorization`.
+    For ill-conditioned problems, it is recommended to use linear solvers like
+    `QRFactorization`. Alternatively, pass in
+    `assumptions = OperatorAssumptions(false; condition = OperatorsCondition.<condition>)`
+    to `solve`/`init`.
 """
 @kwdef @concrete struct PolynomialFitAlgorithm <: AbstractCurveFitAlgorithm
     degree::Int
@@ -197,7 +229,8 @@ end
 function CommonSolve.solve(prob::AbstractCurveFitProblem; kwargs...)
     return solve(
         prob,
-        is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm() : __FallbackLinearFitAlgorithm();
+        is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm() :
+        __FallbackLinearFitAlgorithm();
         kwargs...
     )
 end
