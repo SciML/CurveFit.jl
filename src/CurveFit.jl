@@ -7,8 +7,8 @@ using Markdown: @doc_str
 using Setfield: @set!
 
 using RecursiveArrayTools: NamedArrayPartition
-using FastRationals: FastRational, FastQBig
-using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, rdiv!, ldiv!
+using FastRationals: FastRational
+using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
