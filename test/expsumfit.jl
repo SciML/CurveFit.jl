@@ -18,6 +18,8 @@
 end
 
 @testitem "ExpSumFit: Cumulative integrals" begin
+    n = 4
+
     x = collect(0:0.4:10)
     y = @. 1 + sin(x)
     cumints_analytic = @. [(x + 1 - cos(x)) (1 / 2 * x^2 + x - sin(x)) (1 / 6 * x^3 +

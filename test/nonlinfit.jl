@@ -108,28 +108,3 @@ end
         @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
     end
 end
-
-# @testitem "Secant method NLS curve fitting: Linear problem" begin
-#     x = 1.0:10.0
-#     a0 = [3.0, 2.0, 1.0]
-#     fn(x, a) = a[1] + a[2] * x + a[3] * x^2
-#     y = fn.(x, Ref(a0))
-
-#     a = CurveFit.secant_nls_fit(x, y, fn, [0.5, 0.5, 0.5], 1e-8, 30)
-
-#     @test a[1]≈a0[1] rtol=1e-7
-#     @test a[2]≈a0[2] rtol=1e-7
-#     @test a[3]≈a0[3] rtol=1e-7
-# end
-
-# @testitem "Secant method NLS curve fitting: Nonlinear problem" begin
-#     x = 1.0:10.0
-#     fn(x, a) = a[1] + a[2] * x^a[3]
-#     a0 = [3.0, 2.0, 0.7]
-#     y = fn.(x, Ref(a0))
-#     a = CurveFit.secant_nls_fit(x, y, fn, [0.5, 0.5, 0.5], 1e-8, 30)
-
-#     @test a[1]≈a0[1] rtol=1e-7
-#     @test a[2]≈a0[2] rtol=1e-7
-#     @test a[3]≈a0[3] rtol=1e-7
-# end

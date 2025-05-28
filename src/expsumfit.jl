@@ -170,6 +170,7 @@ function CommonSolve.init(
     )
 end
 
+# TODO: allocations in this function aren't optimized
 function CommonSolve.solve!(cache::ExpSumFitCache)
     sc = __expsum_scale!(cache.prob.x, cache.prob.y)
 
