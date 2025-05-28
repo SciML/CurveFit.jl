@@ -241,6 +241,24 @@ function RationalPolynomialFitAlgorithm(num_degree::Int, den_degree::Int)
     return RationalPolynomialFitAlgorithm(num_degree, den_degree, nothing)
 end
 
+@doc doc"""
+    ExpSumFitAlgorithm(; n::Int, m::Int = 1, withconst::Bool = true)
+
+Fits the sum of `n` exponentials and a constant.
+
+```math
+    y = k + p_1 e^{\lambda_1 t} + p_2 e^{\lambda_2 t} + \ldots + p_n e^{\lambda_n t}
+```
+
+If the keyword `withconst` is set to `false`, the constant is not fitted but set `k=0`.
+
+Uses numerical integration with `m` strips, where the default `m=1` uses linear
+interpolation. `m=2` and higher require uniform interval and usually lead to better
+accuracy.
+
+This algorithm is from
+[Matlab code of Juan Gonzales Burgos](https://github.com/juangburgos/FitSumExponentials).
+"""
 @kwdef @concrete struct ExpSumFitAlgorithm <: AbstractCurveFitAlgorithm
     n::Int
     m::Int = 1

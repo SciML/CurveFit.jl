@@ -6,7 +6,9 @@ using InverseFunctions: inverse
 using Markdown: @doc_str
 using Setfield: @set!
 
-using LinearAlgebra: LinearAlgebra, eigvals
+using RecursiveArrayTools: NamedArrayPartition
+using FastRationals: FastRational, FastQBig
+using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, rdiv!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
@@ -33,6 +35,7 @@ export LinearCurveFitAlgorithm, LogCurveFitAlgorithm, PowerCurveFitAlgorithm,
        ExpCurveFitAlgorithm, PolynomialFitAlgorithm
 export RationalPolynomialFitAlgorithm
 export KingCurveFitAlgorithm, ModifiedKingCurveFitAlgorithm
+export ExpSumFitAlgorithm
 
 export CurveFitSolution
 
