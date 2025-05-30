@@ -1,31 +1,42 @@
 @testitem "Linear Rational fit" begin
+    using LinearSolve, LinearAlgebra
+
     x = range(1, stop = 10, length = 10)
-    r = RationalPoly([1.0, 0.0, -2.0], [1.0, 2.0, 3.0])
+    r = CurveFit.RationalPolynomial([1.0, 0.0, -2.0], [1.0, 2.0, 3.0])
     y = r.(x)
 
-    f = linear_rational_fit(x, y, 2, 3)
-    @test f[1]≈1.0 atol=1.0e-8
-    @test f[2]≈0.0 atol=1.0e-8
-    @test f[3]≈-2.0 atol=1.0e-8
-    @test f[4]≈2.0 atol=1.0e-8
-    @test f[5]≈3.0 atol=1.0e-8
-    @test f[6]≈0.0 atol=1.0e-8
+    prob = CurveFitProblem(x, y)
+    sol = solve(prob, RationalPolynomialFitAlgorithm(2, 3, QRFactorization(ColumnNorm())))
+
+    @test sol.u≈[1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
+
+    @testset for val in (0.0, 1.5, 4.5, 10.0)
+        @test sol(val)≈r(val) atol=1.0e-8
+    end
 end
 
 @testitem "Nonlinear Rational fit" begin
+    using NonlinearSolve
+
     x = range(1, stop = 10, length = 10)
-    r = RationalPoly([1.0, 0.0, -2.0], [1.0, 2.0, 3.0])
+    r = CurveFit.RationalPolynomial([1.0, 0.0, -2.0], [1.0, 2.0, 3.0])
     y = r.(x)
-    f = rational_fit(x, y, 2, 3)
 
-    @test f[1]≈1.0 atol=1.0e-7
-    @test f[2]≈0.0 atol=1.0e-7
-    @test f[3]≈-2.0 atol=1.0e-7
-    @test f[4]≈2.0 atol=1.0e-7
-    @test f[5]≈3.0 atol=1.0e-7
-    @test f[6]≈0.0 atol=1.0e-7
+    algs = [
+    # TODO: broken due to https://github.com/SciML/NonlinearSolve.jl/issues/504
+    # RationalPolynomialFitAlgorithm(2, 3),
+        RationalPolynomialFitAlgorithm(2, 3, LevenbergMarquardt())
+    ]
+    u0s = [nothing, fill(10.0, 6)]
+    for alg in algs, u0 in u0s
+        prob = CurveFitProblem(x, y; u0 = u0)
+        sol = solve(prob, alg)
 
-    f = curve_fit(RationalPoly, x, y, 2, 3)
-    @test f(1.5)≈r(1.5) atol=1.0e-8
-    @test f(4.5)≈r(4.5) atol=1.0e-8
+        @test sol.u≈[1.0, 0.0, -2.0, 2.0, 3.0, 0.0] atol=1.0e-8
+        @test SciMLBase.successful_retcode(sol.retcode)
+
+        @testset for val in (0.0, 1.5, 4.5, 10.0)
+            @test sol(val)≈r(val) atol=1.0e-8
+        end
+    end
 end
