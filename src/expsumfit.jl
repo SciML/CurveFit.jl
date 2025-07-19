@@ -204,14 +204,19 @@ function CommonSolve.solve!(cache::ExpSumFitCache)
     withconst = size(cache.Y, 2) == 2 * cache.alg.n + 1
     T = promote_type(eltype(p), eltype(λ))
 
-    backing = if withconst
-        (; k = T[real(p[end])], p = p[1:(cache.alg.n)], λ)
+    if withconst
+        k = T[real(p[end])]
+        p = p[1:(cache.alg.n)]
     else
-        (; k = T[0], p, λ)
+        k = T[0]
     end
+    backing = (; k, p, λ)
+
+    y_pred = k .+ sum(exp.(cache.prob.x * λ') .* p'; dims = 2)
+    resid = cache.prob.y .- y_pred
 
     return CurveFitSolution(
-        cache.alg, NamedArrayPartition(backing), cache.prob, ReturnCode.Success, nothing
+        cache.alg, NamedArrayPartition(backing), resid, cache.prob, ReturnCode.Success, nothing
     )
 end
 
