@@ -57,7 +57,7 @@ end
 
 function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
     sol = solve!(cache.cache)
-    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode, sol)
+    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
