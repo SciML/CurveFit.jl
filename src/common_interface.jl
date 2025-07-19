@@ -282,6 +282,7 @@ algorithm used to solve the problem.
 @concrete struct CurveFitSolution <: AbstractCurveFitSolution
     alg <: AbstractCurveFitAlgorithm
     u
+    resid
     prob <: CurveFitProblem
     retcode::ReturnCode.T
     original
