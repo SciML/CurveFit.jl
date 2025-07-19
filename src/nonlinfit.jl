@@ -41,15 +41,22 @@ function CommonSolve.init(
                                         problems"
     @assert prob.u0!==nothing "Nonlinear curve fitting requires an initial guess (u0)"
 
+    wrapped_func = __wrap_nonlinear_function(prob.nlfunc, prob.y)
+    
+    # For in-place functions, we need to ensure the wrapped function has the correct resid_prototype
+    if SciMLBase.isinplace(prob.nlfunc)
+        # Create a prototype array with the same size as the expected output
+        # For curve fitting, this should match the size of the input data
+        resid_prototype = similar(prob.x)
+        # Update the wrapped function to include the resid_prototype
+        @set! wrapped_func.resid_prototype = resid_prototype
+    end
+
+    nlprob = NonlinearLeastSquaresProblem(wrapped_func, prob.u0, prob.x)
+
     return GenericNonlinearCurveFitCache(
         prob,
-        init(
-            NonlinearLeastSquaresProblem(
-                __wrap_nonlinear_function(prob.nlfunc, prob.y), prob.u0, prob.x
-            ),
-            alg.alg;
-            kwargs...
-        ),
+        init(nlprob, alg.alg; kwargs...),
         alg,
         kwargs
     )
@@ -61,5 +68,13 @@ function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
-    return sol.prob.nlfunc(sol.u, x)
+    if SciMLBase.isinplace(sol.prob.nlfunc)
+            # For array input, allocate output with same size
+            output = similar(x)
+            sol.prob.nlfunc(output, sol.u, x)
+            return output
+    else
+        # For out-of-place functions, call directly
+        return sol.prob.nlfunc(sol.u, x)
+    end
 end
