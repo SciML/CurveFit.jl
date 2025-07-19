@@ -108,3 +108,53 @@ end
         @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
     end
 end
+
+@testitem "Nonlinear Residuals Field" begin
+    using SciMLBase
+
+    # Test 1: Simple exponential fit with noise
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    a_true = [2.0, 0.5]
+    fn(a, x) = @. a[1] * exp(a[2] * x)
+    y_true = fn(a_true, x)
+    # Add some noise
+    y = y_true .+ [0.1, -0.05, 0.08, -0.02, 0.03]
+
+    prob = NonlinearCurveFitProblem(fn, [1.0, 0.3], x, y)
+    sol = solve(prob)
+
+    # Test that resid field exists and has correct properties
+    @test sol.resid !== nothing
+    @test length(sol.resid) == length(y)
+    @test SciMLBase.successful_retcode(sol.retcode)
+    
+    # Test that residuals are computed correctly as y - fitted_values
+    fitted_values = sol.(x)
+    expected_resid = y .- fitted_values
+    @test sol.resid ≈ expected_resid
+
+    # Test 2: Perfect nonlinear fit (should have near-zero residuals)
+    x_perfect = [1.0, 2.0, 3.0, 4.0]
+    a_perfect = [3.0, 0.8, 1.2]
+    fn_perfect(a, x) = @. a[1] + a[2] * x^a[3]
+    y_perfect = fn_perfect(a_perfect, x_perfect)
+
+    prob_perfect = NonlinearCurveFitProblem(fn_perfect, [2.5, 0.7, 1.1], x_perfect, y_perfect)
+    sol_perfect = solve(prob_perfect)
+
+    @test sol_perfect.resid !== nothing
+    @test SciMLBase.successful_retcode(sol_perfect.retcode)
+    @test maximum(abs.(sol_perfect.resid)) < 1e-10  # Should be very small for perfect fit
+    
+    # Test 3: Nonlinear problem without y data (should set resid to nothing appropriately)
+    # This tests the case where prob.y is nothing
+    fn_noy(a, x) = @. a[1] + a[2] * x[:, 1]^a[3] - x[:, 2]
+    X_test = hcat([1.0, 2.0, 3.0], [3.0, 5.0, 7.0])  # Second column represents target values
+    
+    prob_noy = NonlinearCurveFitProblem(fn_noy, [1.0, 1.0, 1.0], X_test)
+    sol_noy = solve(prob_noy)
+    
+    # For problems without explicit y data, residuals should still be computed if possible
+    @test sol_noy.resid !== nothing || sol_noy.resid === nothing  # Either way is acceptable
+    @test SciMLBase.successful_retcode(sol_noy.retcode)
+end

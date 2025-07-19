@@ -15,6 +15,44 @@
     end
 end
 
+@testitem "Residuals Field" begin
+    # Test that residuals are properly computed and stored
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    y = [2.1, 4.0, 5.9, 8.1, 9.9]  # y ≈ 2x with some noise
+
+    prob = CurveFitProblem(x, y)
+    sol = solve(prob, LinearCurveFitAlgorithm())
+
+    # Test that resid field exists and is not nothing
+    @test sol.resid !== nothing
+    @test length(sol.resid) == length(y)
+    
+    # Test that residuals are computed correctly as y - fitted_values
+    fitted_values = sol.(x)
+    expected_resid = y .- fitted_values
+    @test sol.resid ≈ expected_resid
+    
+    # Test with perfect fit (should have near-zero residuals)
+    x_perfect = [1.0, 2.0, 3.0, 4.0]
+    y_perfect = [3.0, 5.0, 7.0, 9.0]  # exactly y = 2x + 1
+    
+    prob_perfect = CurveFitProblem(x_perfect, y_perfect)
+    sol_perfect = solve(prob_perfect, LinearCurveFitAlgorithm())
+    
+    @test sol_perfect.resid !== nothing
+    @test maximum(abs.(sol_perfect.resid)) < 1e-14  # Should be essentially zero
+    
+    # Test polynomial fit residuals
+    x_poly = [1.0, 2.0, 3.0, 4.0, 5.0]
+    y_poly = [1.0, 4.0, 9.0, 16.0, 25.0]  # exactly x^2
+    
+    prob_poly = CurveFitProblem(x_poly, y_poly)
+    sol_poly = solve(prob_poly, PolynomialFitAlgorithm(degree=2))
+    
+    @test sol_poly.resid !== nothing
+    @test maximum(abs.(sol_poly.resid)) < 1e-14  # Should be essentially zero for perfect fit
+end
+
 @testitem "Log Fit" begin
     x = range(1, stop = 10, length = 10)
 

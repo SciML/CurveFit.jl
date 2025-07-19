@@ -285,10 +285,27 @@ algorithm used to solve the problem.
     prob <: CurveFitProblem
     retcode::ReturnCode.T
     original
+    resid
 end
 
 function CurveFitSolution(alg, coeffs, prob, retcode)
     return CurveFitSolution(alg, coeffs, prob, retcode, nothing)
+end
+
+function CurveFitSolution(alg, coeffs, prob, retcode, original)
+    # Compute residuals: y - ŷ where ŷ are the fitted values
+    resid = if prob.y !== nothing
+        sol_temp = CurveFitSolution(alg, coeffs, prob, retcode, original, nothing)
+        try
+            fitted_values = sol_temp.(prob.x)
+            prob.y .- fitted_values
+        catch
+            nothing  # If evaluation fails, set resid to nothing
+        end
+    else
+        nothing  # No y data, so no residuals can be computed
+    end
+    return CurveFitSolution(alg, coeffs, prob, retcode, original, resid)
 end
 
 # Common Solve Interface
