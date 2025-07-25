@@ -7,6 +7,7 @@ makedocs(;
     modules = [CurveFit],
     clean = true,
     doctest = false,
+    warnonly = [:missing_docs],
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://docs.sciml.ai/CurveFit/stable/",
