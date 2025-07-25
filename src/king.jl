@@ -52,7 +52,7 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
 
     SciMLBase.reinit!(cache.nonlinear_cache, u0)
     sol = solve!(cache.nonlinear_cache)
-    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode, sol)
+    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol)
 end
 
 function (sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})(x::Number)

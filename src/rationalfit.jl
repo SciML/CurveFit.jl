@@ -104,7 +104,7 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
     )
     cache.linsolve_cache.A = cache.mat
     sol = solve!(cache.linsolve_cache)
-    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode)
+    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode)
 end
 
 function CommonSolve.solve!(cache::NonlinearRationalFitCache)
@@ -116,7 +116,8 @@ function CommonSolve.solve!(cache::NonlinearRationalFitCache)
 
     SciMLBase.reinit!(cache.nonlinear_cache, u0)
     sol = solve!(cache.nonlinear_cache)
-    return CurveFitSolution(cache.alg, sol.u, cache.prob, sol.retcode, sol.original)
+    return CurveFitSolution(
+        cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
 end
 
 function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)

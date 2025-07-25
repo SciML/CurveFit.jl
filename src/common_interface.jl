@@ -282,13 +282,14 @@ algorithm used to solve the problem.
 @concrete struct CurveFitSolution <: AbstractCurveFitSolution
     alg <: AbstractCurveFitAlgorithm
     u
+    resid
     prob <: CurveFitProblem
     retcode::ReturnCode.T
     original
 end
 
-function CurveFitSolution(alg, coeffs, prob, retcode)
-    return CurveFitSolution(alg, coeffs, prob, retcode, nothing)
+function CurveFitSolution(alg, coeffs, resid, prob, retcode)
+    return CurveFitSolution(alg, coeffs, resid, prob, retcode, nothing)
 end
 
 # Common Solve Interface
