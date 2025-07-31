@@ -108,3 +108,33 @@ end
         @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
     end
 end
+
+@testitem "Nonlinear Least Squares: In-place function (Issue #47)" begin
+    using SciMLBase
+
+    # Test in-place function interface for curve fitting
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    θ_true = [1.0, 2.0, 0.5]
+    y_true = θ_true[1] .+ θ_true[2] .* x .+ θ_true[3] .* x.^2
+
+    # In-place function that modifies Y directly
+    function fn_inplace!(Y, θ, X)
+        # This assertion should not fail with the fix
+        @assert size(Y) == size(X) "Expected size(Y) == size(X), got size(Y)=$(size(Y)), size(X)=$(size(X))"
+        @. Y = θ[1] + θ[2] * X + θ[3] * X^2
+        return nothing
+    end
+
+    nlfunc = NonlinearFunction(fn_inplace!)
+    prob = NonlinearCurveFitProblem(nlfunc, [0.5, 0.5, 0.5], x, y_true)
+    sol = solve(prob)
+
+    @test sol.u ≈ θ_true atol=1.0e-7
+    @test SciMLBase.successful_retcode(sol.retcode)
+
+    # Test that the solution works for evaluation
+    @testset for val in [1.5, 2.5, 3.5, 4.5]
+        expected = θ_true[1] + θ_true[2] * val + θ_true[3] * val^2
+        @test sol(val) ≈ expected atol=1.0e-7
+    end
+end
