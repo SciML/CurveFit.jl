@@ -11,16 +11,16 @@ makedocs(;
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://docs.sciml.ai/CurveFit/stable/",
-        assets = String[],
+        assets = String[]
     ),
     pages = [
         "Home" => "index.md",
-        "API" => "api.md",
-    ],
+        "API" => "api.md"
+    ]
 )
 
 deploydocs(;
     repo = "github.com/SciML/CurveFit.jl.git",
     devbranch = "master",
-    push_preview = true,
+    push_preview = true
 )

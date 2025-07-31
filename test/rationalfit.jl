@@ -29,6 +29,7 @@ end
     ]
     u0s = [nothing, fill(10.0, 6)]
     for alg in algs, u0 in u0s
+
         prob = CurveFitProblem(x, y; u0 = u0)
         sol = solve(prob, alg)
 
