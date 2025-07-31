@@ -33,6 +33,7 @@ end
     ]
     u0s = [nothing, fill(1.0, 3)]
     for alg in algs, u0 in u0s
+
         prob = CurveFitProblem(E, U; u0 = u0)
         sol = solve(prob, ModifiedKingCurveFitAlgorithm(alg))
 
