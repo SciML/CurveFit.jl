@@ -1,10 +1,11 @@
 using Documenter
 using CurveFit
+using CommonSolve
 
 makedocs(;
     sitename = "CurveFit.jl",
     authors = "CurveFit Contributors",
-    modules = [CurveFit],
+    modules = [CurveFit, CommonSolve],
     clean = true,
     doctest = false,
     warnonly = [:missing_docs, :docs_block, :cross_references],
