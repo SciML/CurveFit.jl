@@ -145,4 +145,4 @@ println("Decay rate (λ): ", sol.u.λ[])
 
 ## API
 
-See the [API](@ref) page for detailed documentation of all exported functions.
+See the [API Reference](@ref) page for detailed documentation of all exported functions.
