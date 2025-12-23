@@ -46,9 +46,7 @@ initial guess for the coefficients, and `x` and `y` are the data points to fit. 
 following optimization problem is solved:
 
 ```math
-\begin{equation}
-    \underset{u}{\text{argmin}} ~ \| f(u, x) - y \|_2
-\end{equation}
+\argmin_u ~ \left\| f(u, x) - y \right\|_2
 ```
 
 If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
@@ -77,9 +75,10 @@ Represents a linear curve fitting algorithm where `x` and `y` are the data point
 We want to solve for `a` and `b` such that:
 
 ```math
-yfun(y) = a * xfun(x) + b
+f_y(y) = a f_x(x) + b
 ```
 
+where ``f_x`` corresponds to `xfun` and ``f_y`` corresponds to `yfun`.
 Note that this is a general problem specification of a curve fitting problem which can
 be converted to a linear fit in a specific function space by choosing appropriate
 `xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
@@ -98,7 +97,7 @@ Represents a log curve fitting algorithm where `x` and `y` are the data points t
 We want to solve for `a` and `b` such that:
 
 ```math
-y = a * log(x) + b
+y = a \log(x) + b
 ```
 """
 LogCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = identity)
@@ -110,13 +109,14 @@ Represents a power curve fitting algorithm where `x` and `y` are the data points
 We want to solve for `a` and `b` such that:
 
 ```math
-y = b * x^a
+y = b x^a
 ```
 
 This is equivalent to a linear fit in log-log space, i.e.,
 
 ```math
-log(y) = a * log(x) + log(b)
+\log(y) = a \log(x) + \log(b)
+```
 """
 PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
 
@@ -127,13 +127,13 @@ Represents an exponential curve fitting algorithm where `x` and `y` are the data
 fit. We want to solve for `a` and `b` such that:
 
 ```math
-y = b * exp(a * x)
+y = b \exp(a x)
 ```
 
 This is equivalent to a linear fit in log-linear space, i.e.,
 
 ```math
-log(y) = a * x + log(b)
+\log(y) = a x + \log(b)
 ```
 """
 ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
@@ -146,13 +146,13 @@ We want to solve for `a` and `b` according to original King's law (1910) that re
 the relationship between voltage (E) and velocity (U) in a hotwire anemometer:
 
 ```math
-E^2 = A + B * U^0.5
+E^2 = A + B U^{1/2}
 ```
 
 or
 
 ```math
-x^2 = A + B * y^0.5
+x^2 = A + B y^{1/2}
 ```
 """
 KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
@@ -163,7 +163,7 @@ KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
 Similar to [`KingCurveFitAlgorithm`](@ref), but uses the modified King's law:
 
 ```math
-E^2 = A + B * U^n
+E^2 = A + B U^n
 ```
 
 where `n` is also a parameter.
@@ -214,14 +214,14 @@ linear least squares fitting.
 In this case the following curve fit is done:
 
 ```math
-y = \frac{p(x)}{q(x)}
+y = \\frac{p(x)}{q(x)}
 ```
 
 where `p(x)` is a polynomial of degree `num_degree` and `q(x)` is a polynomial of degree
 `den_degree`. The linear case is solved by doing a least squares fit on:
 
 ```math
-y * q(x) = p(x)
+y q(x) = p(x)
 ```
 
 where the zero order term of `q(x)` is assumed to be 1.
@@ -247,7 +247,7 @@ end
 Fits the sum of `n` exponentials and a constant.
 
 ```math
-    y = k + p_1 e^{\lambda_1 t} + p_2 e^{\lambda_2 t} + \ldots + p_n e^{\lambda_n t}
+y = k + p_1 e^{λ_1 t} + p_2 e^{λ_2 t} + ⋯ + p_n e^{λ_n t}
 ```
 
 If the keyword `withconst` is set to `false`, the constant is not fitted but set `k=0`.
