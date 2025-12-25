@@ -1,4 +1,4 @@
-# API
+# API Reference
 
 ```@index
 ```
@@ -33,7 +33,7 @@ CurveFitSolution
 ## Common Interface
 
 ```@docs
-solve
-solve!
-init
+CommonSolve.solve
+CommonSolve.solve!
+CommonSolve.init
 ```

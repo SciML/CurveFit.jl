@@ -1,3 +1,10 @@
 [deps]
+CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 CurveFit = "5a033b19-8c74-5913-a970-47c3779ef25c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "1"
+
+[sources]
+CurveFit = {path = ".."}
