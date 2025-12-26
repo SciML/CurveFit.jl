@@ -273,7 +273,7 @@ end
 
 # Solution Types
 """
-    CurveFitSolution(alg, coeffs, prob)
+    CurveFitSolution(alg, coeffs, resid, prob, retcode, original=nothing)
 
 Represents the solution to a curve fitting problem. This is a callable struct and
 can be used to evaluate the solution at a point. Exact evaluation mechanism depends on the
