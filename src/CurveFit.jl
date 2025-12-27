@@ -13,7 +13,8 @@ using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
                  NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
-using ForwardDiff: ForwardDiff
+using DifferentiationInterface: DifferentiationInterface
+using ADTypes: AutoForwardDiff
 using Distributions: TDist, quantile
 import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror,
                  confint

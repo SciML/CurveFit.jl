@@ -93,6 +93,21 @@
         @test isconverged(sol)
     end
     
+    @testset "Explcit API Coverage (ExpSum)" begin
+        # Test ExpSumFitAlgorithm explicitly to ensure jacobian works
+        # y = k + p*exp(lam*x)
+        # Truth: k=1, p=2, lam=-0.5
+        x_data = collect(range(0, 5, length=20))
+        y_data = @. 1.0 + 2.0 * exp(-0.5 * x_data) + 0.01 * randn()
+        
+        prob = CurveFitProblem(x_data, y_data)
+        sol = solve(prob, ExpSumFitAlgorithm(; n=1, withconst=true))
+        
+        @test size(vcov(sol)) == (3, 3) # k, p, lam
+        @test all(stderror(sol) .> 0)
+    end
+
+    
     @testset "Polynomial Fit Array Support" begin
         x = [1.0, 2.0, 3.0]
         y = x.^2

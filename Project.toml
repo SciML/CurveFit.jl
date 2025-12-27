@@ -4,8 +4,10 @@ authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com>, Avik Pal <avikpal@mit
 version = "1.0.0"
 
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FastRationals = "275e499e-7a09-5551-a1d1-9fe535a2b717"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
@@ -20,9 +22,11 @@ Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
 
 [compat]
+ADTypes = "1.20.0"
 Aqua = "0.8.12"
 CommonSolve = "0.2"
 ConcreteStructs = "0.2.3"
+DifferentiationInterface = "0.7.13"
 Distributions = "0.25.122"
 ExplicitImports = "1.11.2"
 FastRationals = "0.3.0"

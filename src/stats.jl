@@ -54,6 +54,101 @@ function jacobian(sol::CurveFitSolution{<:PolynomialFitAlgorithm})
     return J
 end
 
+function jacobian(sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})
+    # Rational fit might solve a linear problem y*q(x) = p(x), but vcov
+    # requires Jacobian of the actual rational model y = p(x)/q(x).
+    # Since prob.nlfunc might be nothing (for linear rational fit),
+    # we define the model explicitly and assume u contains [num_coeffs; den_coeffs].
+    
+    u = sol.u
+    x = sol.prob.x
+    num_deg = sol.alg.num_degree
+    # den_deg = sol.alg.den_degree
+    
+    # Model function f(u) -> predictions
+    function model_rational(u_curr, x_val)
+        # u is [num_coeffs..., den_coeffs...]
+        # num has num_deg + 1 coeffs
+        # den has den_deg coeffs (implicit 1.0 constant term is handled in call, 
+        # but sol.u layout depends on implementation. 
+        # RationalPolynomialFitAlgorithm (linear) usually assumes:
+        # constant term of q(x) is 1. 
+        # Let's check call:
+        # view(sol.u, 1:(sol.alg.num_degree + 1)) -> numerator
+        # vcat(one, view(sol.u, (sol.alg.num_degree + 2):end)) -> denominator
+        
+        num_c = view(u_curr, 1:(num_deg + 1))
+        den_c_params = view(u_curr, (num_deg + 2):length(u_curr))
+        
+        # We need to construct den with 1.0 at start, but 1.0 is constant.
+        # evalpoly requires a vector.
+        # Constructing [1.0, den_c_params...] with Duals might trigger allocation/conversion issues.
+        # Better to eval explicitly: 1.0 + evalpoly(x*x, den_c_params)*x ? 
+        # No, evalpoly(x, [1, c...]) = 1 + c1*x + c2*x^2 ... = 1 + x * evalpoly(x, c)
+        
+        val_num = evalpoly(x_val, num_c)
+        val_den = one(eltype(u_curr)) + x_val * evalpoly(x_val, den_c_params)
+        return val_num / val_den
+    end
+    
+    range = 1:length(x)
+    f_pred = u_curr -> map(i -> model_rational(u_curr, x[i]), range)
+    
+    return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
+end
+
+function jacobian(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
+    # ExpSumFitAlgorithm solves y = k + sum(p_i * exp(lambda_i * x))
+    # u is a ComponentArray/NamedArrayPartition with (k, p, λ)
+    # prob.nlfunc is likely nothing.
+    
+    u = sol.u
+    x = sol.prob.x
+    
+    # We must access u fields. Since u might be generic array or ComponentArray,
+    # we need to handle access carefully matching the call implementation.
+    # sol.u has fields :k, :p, :λ if NamedArrayPartition.
+    # If using ForwardDiff, u_curr will be a Vector{Dual}.
+    # We need to reshape/interpret u_curr based on sol.u structure.
+    # But NamedArrayPartition structure isn't preserved in AD usually if passed as vector.
+    # We know the sizes from sol.alg (n, m is irrelevant here).
+    
+    n = sol.alg.n
+    withconst = sol.alg.withconst
+    
+    function model_expsum(u_curr, x_val)
+        # Extract parameters from flat vector u_curr
+        # Layout: k (if withconst), p (n), λ (n)
+        # Check src/expsumfit.jl backing: (; k, p, λ)
+        # NamedArrayPartition stores them sequentially.
+        
+        idx = 1
+        if withconst
+            k = u_curr[idx]
+            idx += 1
+        else
+            k = zero(eltype(u_curr))
+            # k doesn't advance idx
+        end
+        
+        # p is next n
+        p = view(u_curr, idx:(idx + n - 1))
+        idx += n
+        
+        # λ is next n
+        λ = view(u_curr, idx:(idx + n - 1))
+        
+        # Computation: k + sum(p .* exp.(λ .* x))
+        # Use sum generator to avoid allocation
+        return k + sum(p[i] * exp(λ[i] * x_val) for i in 1:n)
+    end
+    
+    range = 1:length(x)
+    f_pred = u_curr -> map(i -> model_expsum(u_curr, x[i]), range)
+    
+    return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
+end
+
 function jacobian(sol::CurveFitSolution)
     # Fallback for nonlinear
     # The residuals are r_i = model(u, x_i) - y_i
@@ -64,20 +159,19 @@ function jacobian(sol::CurveFitSolution)
     
     # We need a function f(u) -> residuals
     # CurveFitProblem has nlfunc which is f(u, x) or f(resid, u, x)
-    # We construct a wrapper for ForwardDiff
+    # We construct a wrapper for DifferentiationInterface
     
     if SciMLBase.isinplace(sol.prob)
         # In-place: f(resid, u, x)
         f_resid! = (resid, u_curr) -> sol.prob.nlfunc(resid, u_curr, x)
         resid_proto = similar(sol.resid)
-        # Use ForwardDiff.jacobian(f!, y, x) -> J
-        return ForwardDiff.jacobian(f_resid!, resid_proto, u)
+        return DifferentiationInterface.jacobian(f_resid!, resid_proto, AutoForwardDiff(), u)
     else
         # Out-of-place: f(u, x) -> resid (or predictions)
         # Note: nlfunc usually returns predictions. sol.resid = pred - y.
         # So d(resid)/du = d(pred)/du.
         f_pred = u_curr -> sol.prob.nlfunc(u_curr, x)
-        return ForwardDiff.jacobian(f_pred, u)
+        return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
     end
 end
 
