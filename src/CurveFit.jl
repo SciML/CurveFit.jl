@@ -13,7 +13,11 @@ using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
                  NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
-import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror
+using DifferentiationInterface: DifferentiationInterface
+using ADTypes: AutoForwardDiff
+using Distributions: TDist, quantile
+import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror,
+                 confint
 
 # Abstract base class for fitting data
 abstract type AbstractApproxFit end
@@ -43,6 +47,7 @@ export CurveFitSolution
 
 export solve, solve!, init
 
-export coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, mse, vcov, stderror
+export coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, mse, vcov, stderror, confint
+export isconverged
 
 end
