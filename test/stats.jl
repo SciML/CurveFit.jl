@@ -1,6 +1,7 @@
 @testitem "StatsAPI Integration" begin
     using StatsAPI
     using NonlinearSolve
+    using LinearAlgebra
 
     @testset "Linear Fit" begin
         # y = 2x + 1
@@ -31,6 +32,10 @@
         # Check predict with array input (broadcast support)
         x_new = [1.0, 2.0]
         @test predict(sol, x_new) ≈ 2.0 .* x_new .+ 1.0
+        
+        # Exact fit -> zero variance
+        @test all(isapprox.(vcov(sol), 0; atol=1e-8))
+        @test all(isapprox.(stderror(sol), 0; atol=1e-8))
     end
 
     @testset "Nonlinear Fit" begin
@@ -57,8 +62,35 @@
         
         @test rss(sol) < 1e-4
         
-        @test_throws ErrorException vcov(sol)
-        @test_throws ErrorException stderror(sol)
+        # Perfect fit -> near zero errors
+        @test all(stderror(sol) .< 1e-2)
+        
+        @test size(vcov(sol)) == (3, 3)
+    end
+    
+    @testset "Noisy Fit Statistics" begin
+        # Linear fit with noise
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = 2.0 .* x .+ 1.0 .+ [0.1, -0.1, 0.2, -0.2, 0.0]
+        
+        prob = CurveFitProblem(x, y)
+        alg = LinearCurveFitAlgorithm()
+        sol = solve(prob, alg)
+        
+        @test mse(sol) > 0
+        @test all(stderror(sol) .> 0)
+        @test size(vcov(sol)) == (2, 2)
+        @test isposdef(vcov(sol))
+        
+        # Test confidence intervals
+        cis = confint(sol)
+        @test length(cis) == 2
+        # True params are roughly 2.0 and 1.0. CI should cover them or be close.
+        # Just checking structure and non-error
+        @test cis[1][1] < cis[1][2]
+        
+        # Test isconverged
+        @test isconverged(sol)
     end
     
     @testset "Polynomial Fit Array Support" begin
