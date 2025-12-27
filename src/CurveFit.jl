@@ -8,9 +8,13 @@ using Setfield: @set!
 
 using RecursiveArrayTools: NamedArrayPartition
 using FastRationals: FastRational
-using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
+using LinearAlgebra: LinearAlgebra, eigvals!, diagm, diag, inv, qr!, lu!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
+using ForwardDiff: ForwardDiff, Dual, jacobian
+using Distributions: Distributions, TDist
+using Statistics: Statistics, quantile
+using StatsAPI: StatsAPI, coef, confint, nobs, dof, rss, residuals, vcov, stderror
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
                  NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
 import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror
@@ -40,6 +44,10 @@ export KingCurveFitAlgorithm, ModifiedKingCurveFitAlgorithm
 export ExpSumFitAlgorithm
 
 export CurveFitSolution
+
+export coef, confint, nobs, dof, rss, residuals, vcov, stderror, mse, margin_of_error
+
+export LM_QR, LM_CH
 
 export solve, solve!, init
 
