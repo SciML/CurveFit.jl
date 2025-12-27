@@ -58,9 +58,9 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
     )
 end
 
-function (sol::CurveFitSolution{<:LinearCurveFitAlgorithm})(x::Number)
+function (sol::CurveFitSolution{<:LinearCurveFitAlgorithm})(x)
     a, b = sol.u
-    return sol.alg.yfun_inverse(b + a * sol.alg.xfun(x))
+    return sol.alg.yfun_inverse.(b .+ a .* sol.alg.xfun.(x))
 end
 
 # Polynomial Fit
@@ -94,6 +94,6 @@ function CommonSolve.solve!(cache::PolynomialFitCache)
     return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode)
 end
 
-function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x::Number)
-    return evalpoly(x, sol.u)
+function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x)
+    return evalpoly.(x, Ref(sol.u))
 end

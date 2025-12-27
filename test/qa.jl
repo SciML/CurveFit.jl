@@ -5,6 +5,7 @@ end
 
 @testitem "Explicit Imports" begin
     using ExplicitImports
+    using StatsAPI
 
     @test check_no_implicit_imports(CurveFit) === nothing
     @test check_no_stale_explicit_imports(CurveFit) === nothing
