@@ -13,6 +13,7 @@ using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
                  NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
+import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror
 
 # Abstract base class for fitting data
 abstract type AbstractApproxFit end
@@ -27,6 +28,7 @@ include("rationalfit.jl")
 include("nonlinfit.jl")
 include("king.jl")
 include("expsumfit.jl")
+include("stats.jl")
 
 # Exported functions
 export CurveFitProblem, NonlinearCurveFitProblem
@@ -40,5 +42,7 @@ export ExpSumFitAlgorithm
 export CurveFitSolution
 
 export solve, solve!, init
+
+export coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, mse, vcov, stderror
 
 end
