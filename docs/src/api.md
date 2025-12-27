@@ -36,4 +36,5 @@ CurveFitSolution
 CommonSolve.solve
 CommonSolve.solve!
 CommonSolve.init
+CommonSolve.init(::CurveFit.AbstractCurveFitProblem)
 ```

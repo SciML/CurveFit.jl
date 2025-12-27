@@ -273,7 +273,7 @@ end
 
 # Solution Types
 """
-    CurveFitSolution(alg, coeffs, prob)
+    CurveFitSolution(alg, coeffs, resid, prob, retcode, original=nothing)
 
 Represents the solution to a curve fitting problem. This is a callable struct and
 can be used to evaluate the solution at a point. Exact evaluation mechanism depends on the
@@ -293,6 +293,13 @@ function CurveFitSolution(alg, coeffs, resid, prob, retcode)
 end
 
 # Common Solve Interface
+"""
+    CommonSolve.init(prob::AbstractCurveFitProblem, alg; kwargs...)
+
+Creates an `iter` for an `AbstractCurveFitProblem`, which can then be passed to `solve()`.
+`alg` can be omitted if `prob` is a nonlinear problem. The return type is
+dependent on `alg`, the specified solver algorithm.
+"""
 function CommonSolve.init(prob::AbstractCurveFitProblem; kwargs...)
     return init(
         prob,
