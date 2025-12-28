@@ -8,12 +8,15 @@ using Setfield: @set!
 
 using RecursiveArrayTools: NamedArrayPartition
 using FastRationals: FastRational
-using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
+using LinearAlgebra: LinearAlgebra, eigvals!, diagm, diag, inv, qr!, lu!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
+using ForwardDiff: ForwardDiff, Dual, jacobian
+using Distributions: Distributions, TDist
+using Statistics: Statistics, quantile
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
                  NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
-import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror
+using StatsAPI: StatsAPI, coef, residuals, nobs, dof, dof_residual, rss, vcov, stderror, confint
 
 # Abstract base class for fitting data
 abstract type AbstractApproxFit end
@@ -41,8 +44,10 @@ export ExpSumFitAlgorithm
 
 export CurveFitSolution
 
-export solve, solve!, init
+export coef, confint, nobs, dof, dof_residual, rss, residuals, vcov, stderror, mse, margin_of_error
 
-export coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, mse, vcov, stderror
+export LM_QR, LM_CH
+
+export solve, solve!, init
 
 end
