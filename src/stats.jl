@@ -9,7 +9,10 @@ StatsAPI.residuals(sol::CurveFitSolution) = sol.resid
 StatsAPI.nobs(sol::CurveFitSolution) = length(sol.resid)
 
 """ Returns the number of degrees of freedom present in CurveFitSolution."""
-StatsAPI.dof(sol::CurveFitSolution) = nobs(sol) - length(coef(sol))
+StatsAPI.dof(sol::CurveFitSolution) = length(coef(sol))
+
+""" Returns the residual degrees of freedom present in CurveFitSolution."""
+StatsAPI.dof_residual(sol::CurveFitSolution) = nobs(sol) - dof(sol)
 
 """ Returns the residual sum of squares of CurveFitSolution"""
 StatsAPI.rss(sol::CurveFitSolution) = sum(abs2, sol.resid)
