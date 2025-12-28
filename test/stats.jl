@@ -16,14 +16,19 @@
     prob = NonlinearCurveFitProblem(nonfn, [0.5, 0.5, 0.5], X, Y)
     sol = solve(prob, LevenbergMarquardt())
 
-    @test residuals(sol)
-    @test coef(sol)
-    @test nobs(sol)
-    @test dof(sol)
-    @test rss(sol)
-    @test mse(sol)
-    @test vcov(sol)
-    @test stderror(sol)
-    @test margin_of_error(sol, 0.05)
-    @test confint(sol)
+    @test coef(sol) ≈ θ_ref
+    @test nobs(sol) == 10
+    @test dof(sol) == 3
+    @test dof_residual(sol) == 7
+    @test rss(sol) <  1e-4
+    @test mse(sol) < 1e-4
+    @test vcov(sol) isa AbstractMatrix
+    @test size(vcov(sol)) == (length(sol.u), length(sol.u))
+    @test length(stderror(sol)) == length(coef(sol))
+    @test all(stderror(sol) .>= 0) 
+    @test length(margin_of_error(sol, 0.05)) == length(coef(sol))
+    @test all(margin_of_error(sol, 0.05) .>= 0)
+    @test length(confint(sol)) == length(coef(sol)) 
+    ci = confint(sol)
+    @test all(first.(ci) .<= coef(sol) .<= last.(ci))
 end    
