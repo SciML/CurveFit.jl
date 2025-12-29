@@ -25,6 +25,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        group:
+          - "All"
+          - "nopre"
         version:
           - "1"
           - "lts"
@@ -33,8 +36,13 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
+        exclude:
+          # Don't run nopre tests on pre-release Julia
+          - group: "nopre"
+            version: "pre"
     uses: "SciML/.github/.github/workflows/tests.yml@v1"
     with:
       julia-version: "${{ matrix.version }}"
       os: "${{ matrix.os }}"
+      group: "${{ matrix.group }}"
     secrets: "inherit"
