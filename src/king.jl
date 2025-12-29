@@ -50,9 +50,20 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
         u0 = cache.prob.u0
     end
 
-    SciMLBase.reinit!(cache.nonlinear_cache, u0)
-    sol = solve!(cache.nonlinear_cache)
-    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol)
+    # Re-create the nonlinear problem with the computed u0 to avoid reinit! issues
+    # with the composite cache in NonlinearSolve.
+    nonlinear_prob = NonlinearCurveFitProblem(
+        NonlinearFunction{true}(
+            __king_fun!;
+            resid_prototype = similar(cache.prob.x)
+        ),
+        u0,
+        stack((cache.prob.x, cache.prob.y); dims = 1),
+        nothing
+    )
+    
+    sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)
+    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
 end
 
 function (sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})(x::Number)
