@@ -9,16 +9,35 @@ __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target)
     internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, f.f)
     @set! f.f = internal_f
+    @set! f.resid_prototype = zeros(length(target))
     return f
 end
 
 (nlf::NonlinearFunctionWrapper{false})(p, X) = nlf.f(p, X) .- nlf.target
 
-function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
+function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)    
     nlf.f(resid, p, X)
     resid .-= nlf.target
     return resid
 end
+
+# Matrix decomposition choices for LevenbergMarquardt
+doc = """
+    LM_QR(; kwargs...)
+    LM_CH(; kwargs...)
+
+Return Levenberg–Marquardt solvers with different linear solvers.
+
+- `LM_QR`: QR factorization (stable, slower)
+- `LM_CH`: Cholesky factorization (faster, less stable)
+
+All keyword arguments are forwarded to `NonlinearSolve.LevenbergMarquardt`.
+"""
+@doc doc LM_QR()
+@doc doc LM_CH()
+
+LM_QR(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.QRFactorization(); kwargs...)
+LM_CH(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.CholeskyFactorization(); kwargs...)
 
 # NLLS Solvers
 @concrete struct GenericNonlinearCurveFitCache
@@ -61,5 +80,9 @@ function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
-    return sol.prob.nlfunc(sol.u, x)
+    return sol.prob.nlfunc(sol.u, x)    
 end
+
+function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(y, x)
+    sol.prob.nlfunc(y, sol.u, x)
+end    
