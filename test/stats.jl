@@ -163,7 +163,8 @@
 
     
     @testset "Polynomial Fit Array Support" begin
-        x = [1.0, 2.0, 3.0]
+        # Use overdetermined system (5 points, 3 params) to avoid division by zero in MSE
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
         y = x.^2
         # y = 0 + 0x + 1x^2
         prob = CurveFitProblem(x, y)
