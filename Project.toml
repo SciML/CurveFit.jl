@@ -1,7 +1,7 @@
 name = "CurveFit"
 uuid = "5a033b19-8c74-5913-a970-47c3779ef25c"
-authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com>, Avik Pal <avikpal@mit.edu> and contributors"]
 version = "1.0.0"
+authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com>, Avik Pal <avikpal@mit.edu> and contributors"]
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
@@ -12,6 +12,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
+NonlinearSolveBase = "be0214bd-f91f-a760-ac4e-3421ce2b2da0"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
@@ -27,7 +28,8 @@ InverseFunctions = "0.1"
 LinearAlgebra = "1.10"
 LinearSolve = "3.15.0"
 Markdown = "1.10.0"
-NonlinearSolve = "4.8.0"
+NonlinearSolve = "4.12.0"
+NonlinearSolveBase = "2.0"
 RecursiveArrayTools = "3.33.0"
 SciMLBase = "2.90"
 Setfield = "1.1.2"
