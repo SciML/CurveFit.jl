@@ -104,18 +104,47 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
     )
     cache.linsolve_cache.A = cache.mat
     sol = solve!(cache.linsolve_cache)
-    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode)
+    resid = if sol.resid === nothing
+        # Linear problem: y ≈ p/q => y*q - p ≈ 0 (linearized residual)
+        # But StatsAPI expects y - p/q (nonlinear residual) or linearized?
+        # Standard definition is y - y_pred.
+        # So we should compute y - p(x)/q(x) using the fitted params.
+        
+        # We need to construct the RationalPolynomial to eval it.
+        # Helper function from rationalfit.jl isn't easily accessible inside solve! without alloc.
+        # But we can reuse the logic from call:
+        rpoly = RationalPolynomial(
+            view(sol.u, 1:(cache.alg.num_degree + 1)),
+            vcat(one(eltype(sol.u)), view(sol.u, (cache.alg.num_degree + 2):length(sol.u)))
+        )
+        cache.prob.y .- rpoly.(cache.prob.x)
+    else
+        sol.resid
+    end
+    return CurveFitSolution(cache.alg, sol.u, resid, cache.prob, sol.retcode)
 end
 
 function CommonSolve.solve!(cache::NonlinearRationalFitCache)
-    u0 = if cache.initial_guess_cache === nothing
-        cache.prob.u0
+    if cache.initial_guess_cache !== nothing
+        sol = solve!(cache.initial_guess_cache)
+        u0 = sol.u # Linear fit returns all coefficients [p0...pn, q1...qn]
     else
-        solve!(cache.initial_guess_cache).u
+        u0 = cache.prob.u0
     end
 
-    SciMLBase.reinit!(cache.nonlinear_cache, u0)
-    sol = solve!(cache.nonlinear_cache)
+    # Re-create problem to avoid reinit! crash
+    nonlinear_prob = NonlinearCurveFitProblem(
+        NonlinearFunction{true}(
+            __rational_fit_residual!(cache.alg.num_degree, cache.alg.den_degree);
+            resid_prototype = similar(cache.prob.x)
+        ),
+        u0,
+        cache.prob.x,
+        cache.prob.y
+    )
+    
+    sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)
+    
     return CurveFitSolution(
         cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
 end

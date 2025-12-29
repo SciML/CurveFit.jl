@@ -149,6 +149,37 @@ function jacobian(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
     return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
 end
 
+function jacobian(sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})
+    # Modified King: E^2 = A + B * U^n
+    # x corresponds to E (Voltage) - Model predicts x^2
+    # y corresponds to U (Velocity)
+    # Model: x^2 = A + B * y^n
+    # This is an implicit model `f(x, y, p) = 0` or `g(y) = h(x)`.
+    # Our fitting minimizes (A + B*y^n - x^2)^2.
+    # The "residual" is (Prediction - Observation).
+    # Observation is x^2. Prediction is A + B*y^n.
+    # We need Jacobian of Prediction w.r.t parameters.
+    
+    u = sol.u
+    x = sol.prob.x # E
+    y = sol.prob.y # U
+    
+    # Check if y is valid (it should be)
+    @assert y !== nothing "Modified King fit requires valid `y` data (Velocity)"
+
+    function model_mod_king(u_curr, y_val)
+        A = u_curr[1]
+        B = u_curr[2]
+        n = u_curr[3]
+        return A + B * y_val^n
+    end
+
+    range = 1:length(y)
+    f_pred = u_curr -> map(i -> model_mod_king(u_curr, y[i]), range)
+    
+    return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
+end
+
 function jacobian(sol::CurveFitSolution)
     # Fallback for nonlinear
     # The residuals are r_i = model(u, x_i) - y_i
