@@ -4,3 +4,4 @@
 [![Coverage](https://codecov.io/gh/SciML/CurveFit.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/CurveFit.jl)
 
 Linear, special function, and nonlinear curve fitting in Julia with high-performance and robustness.
+
