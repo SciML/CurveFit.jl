@@ -21,7 +21,7 @@ function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
 end
 
 # NLLS Solvers
-@concrete struct GenericNonlinearCurveFitCache
+@concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     cache
     alg

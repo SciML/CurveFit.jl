@@ -25,7 +25,7 @@ StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
 [compat]
 ADTypes = "1.20.0"
 Aqua = "0.8.12"
-CommonSolve = "0.2"
+CommonSolve = "0.2.6"
 ConcreteStructs = "0.2.3"
 DifferentiationInterface = "0.7.13"
 Distributions = "0.25.122"

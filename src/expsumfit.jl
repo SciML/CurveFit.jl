@@ -133,7 +133,7 @@ end
 
 # Common Solve Interface
 
-@concrete struct ExpSumFitCache
+@concrete struct ExpSumFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     alg
     kwargs

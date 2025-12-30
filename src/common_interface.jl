@@ -1,8 +1,30 @@
+"""
+    abstract type AbstractCurveFitProblem
+
+Abstract supertype for all curve-fitting problems.
+
+See also [`CurveFitProblem`](@ref).
+"""
 abstract type AbstractCurveFitProblem end
 
+"""
+    abstract type AbstractCurveFitAlgorithm
+
+Abstract supertype for all curve-fitting solver algorithms.
+"""
 abstract type AbstractCurveFitAlgorithm end
 
+"""
+    abstract type AbstractCurveFitProblem
+
+Abstract supertype for all curve-fitting solutions (i.e., solutions to
+[`AbstractCurveFitProblem`](@ref)).
+
+See also [`CurveFitSolution`](@ref).
+"""
 abstract type AbstractCurveFitSolution end
+
+abstract type AbstractCurveFitCache end
 
 # Core Problem Types
 @doc doc"""
@@ -273,7 +295,7 @@ end
 
 # Solution Types
 """
-    CurveFitSolution(alg, coeffs, prob)
+    CurveFitSolution(alg, coeffs, resid, prob, retcode, original=nothing)
 
 Represents the solution to a curve fitting problem. This is a callable struct and
 can be used to evaluate the solution at a point. Exact evaluation mechanism depends on the
@@ -293,6 +315,13 @@ function CurveFitSolution(alg, coeffs, resid, prob, retcode)
 end
 
 # Common Solve Interface
+"""
+    CommonSolve.init(prob::AbstractCurveFitProblem, alg; kwargs...)
+
+Creates an `iter` for an `AbstractCurveFitProblem`, which can then be passed to `solve()`.
+`alg` can be omitted if `prob` is a nonlinear problem. The return type is
+dependent on `alg`, the specified solver algorithm.
+"""
 function CommonSolve.init(prob::AbstractCurveFitProblem; kwargs...)
     return init(
         prob,
@@ -308,4 +337,17 @@ function CommonSolve.init(
     @assert is_nonlinear_problem(prob) "Nonlinear algorithm can only be used with \
                                        nonlinear problems"
     return init(prob, __FallbackNonlinearFitAlgorithm(alg); kwargs...)
+end
+
+"""
+    CommonSolve.solve!(cache::AbstractCurveFitCache)
+
+Solve an `AbstractCurveFitProblem` with a solver as specified by `cache`.
+
+This is an internal function, not to be handled by end-users. Any
+`AbstractCurveFitAlgorithm` should implement a corresponding
+`AbstractCurveFitCache` and define a dispatch for `solve!()` on it.
+"""
+function CommonSolve.solve!(::AbstractCurveFitCache)
+    error("solve!() must be implemented by a concrete subtype of `AbstractCurveFitCache`")
 end

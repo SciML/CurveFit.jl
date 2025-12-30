@@ -38,7 +38,7 @@ function __rational_fit_residual!(resid, coeffs, x, p::Integer, q::Integer)
 end
 
 # Common Solve Interface
-@concrete struct LinearRationalFitCache
+@concrete struct LinearRationalFitCache <: AbstractCurveFitCache
     mat <: AbstractMatrix
     linsolve_cache
     prob <: CurveFitProblem
@@ -46,7 +46,7 @@ end
     kwargs
 end
 
-@concrete struct NonlinearRationalFitCache
+@concrete struct NonlinearRationalFitCache <: AbstractCurveFitCache
     initial_guess_cache <: Union{Nothing, LinearRationalFitCache}
     nonlinear_cache
     prob <: CurveFitProblem

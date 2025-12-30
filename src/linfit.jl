@@ -32,7 +32,7 @@ function __vandermondepoly!(A, x, n)
 end
 
 # Default Solver
-@concrete struct GenericLinearFitCache
+@concrete struct GenericLinearFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     kwargs
     alg <: LinearCurveFitAlgorithm
@@ -64,7 +64,7 @@ function (sol::CurveFitSolution{<:LinearCurveFitAlgorithm})(x)
 end
 
 # Polynomial Fit
-@concrete struct PolynomialFitCache
+@concrete struct PolynomialFitCache <: AbstractCurveFitCache
     vandermondepoly_cache <: AbstractMatrix
     linsolve_cache
     prob <: CurveFitProblem
