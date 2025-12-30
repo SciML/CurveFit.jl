@@ -1,7 +1,27 @@
+"""
+    abstract type AbstractCurveFitProblem
+
+Abstract supertype for all curve-fitting problems.
+
+See also [`CurveFitProblem`](@ref).
+"""
 abstract type AbstractCurveFitProblem end
 
+"""
+    abstract type AbstractCurveFitAlgorithm
+
+Abstract supertype for all curve-fitting solver algorithms.
+"""
 abstract type AbstractCurveFitAlgorithm end
 
+"""
+    abstract type AbstractCurveFitProblem
+
+Abstract supertype for all curve-fitting solutions (i.e., solutions to
+[`AbstractCurveFitProblem`](@ref)).
+
+See also [`CurveFitSolution`](@ref).
+"""
 abstract type AbstractCurveFitSolution end
 
 abstract type AbstractCurveFitCache end
