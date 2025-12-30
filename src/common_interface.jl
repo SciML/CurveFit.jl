@@ -4,6 +4,8 @@ abstract type AbstractCurveFitAlgorithm end
 
 abstract type AbstractCurveFitSolution end
 
+abstract type AbstractCurveFitCache end
+
 # Core Problem Types
 @doc doc"""
     CurveFitProblem(x, y; nlfunc=nothing, u0=nothing)
@@ -315,4 +317,8 @@ function CommonSolve.init(
     @assert is_nonlinear_problem(prob) "Nonlinear algorithm can only be used with \
                                        nonlinear problems"
     return init(prob, __FallbackNonlinearFitAlgorithm(alg); kwargs...)
+end
+
+function CommonSolve.solve!(::AbstractCurveFitCache)
+    error("solve!() must be implemented by a concrete subtype of `AbstractCurveFitCache`")
 end
