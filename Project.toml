@@ -18,7 +18,7 @@ Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 
 [compat]
 Aqua = "0.8.12"
-CommonSolve = "0.2"
+CommonSolve = "0.2.6"
 ConcreteStructs = "0.2.3"
 ExplicitImports = "1.11.2"
 FastRationals = "0.3.0"
