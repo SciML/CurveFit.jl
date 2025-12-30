@@ -319,6 +319,15 @@ function CommonSolve.init(
     return init(prob, __FallbackNonlinearFitAlgorithm(alg); kwargs...)
 end
 
+"""
+    CommonSolve.solve!(cache::AbstractCurveFitCache)
+
+Solve an `AbstractCurveFitProblem` with a solver as specified by `cache`.
+
+This is an internal function, not to be handled by end-users. Any
+`AbstractCurveFitAlgorithm` should implement a corresponding
+`AbstractCurveFitCache` and define a dispatch for `solve!()` on it.
+"""
 function CommonSolve.solve!(::AbstractCurveFitCache)
     error("solve!() must be implemented by a concrete subtype of `AbstractCurveFitCache`")
 end
