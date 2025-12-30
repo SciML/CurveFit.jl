@@ -21,21 +21,7 @@ function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     return resid
 end
 
-# Matrix decomposition choices for LevenbergMarquardt
-doc = """
-    LM_QR(; kwargs...)
-    LM_CH(; kwargs...)
-
-Return Levenberg–Marquardt solvers with different linear solvers.
-
-- `LM_QR`: QR factorization (stable, slower)
-- `LM_CH`: Cholesky factorization (faster, less stable)
-
-All keyword arguments are forwarded to `NonlinearSolve.LevenbergMarquardt`.
-"""
-@doc doc LM_QR()
-@doc doc LM_CH()
-
+#Matrix decomposition choices for LevenbergMarquardt
 LM_QR(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.QRFactorization(); kwargs...)
 LM_CH(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.CholeskyFactorization(); kwargs...)
 
@@ -85,4 +71,5 @@ end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(y, x)
     sol.prob.nlfunc(y, sol.u, x)
-end    
+end
+    
