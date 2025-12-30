@@ -1,3 +1,6 @@
+```@meta
+CurrentModule = CurveFit
+```
 # API Reference
 
 ```@index
@@ -35,5 +38,7 @@ CurveFitSolution
 ```@docs
 CommonSolve.solve
 CommonSolve.solve!
+CommonSolve.solve!(::AbstractCurveFitCache)
 CommonSolve.init
+CommonSolve.init(::AbstractCurveFitProblem)
 ```

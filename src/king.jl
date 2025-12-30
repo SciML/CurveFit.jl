@@ -6,7 +6,7 @@ function __king_fun!(resid, p, x)
 end
 
 # Common Solve Interface
-@concrete struct ModifiedKingFitCache
+@concrete struct ModifiedKingFitCache <: AbstractCurveFitCache
     initial_guess_cache <: Union{Nothing, GenericLinearFitCache}
     nonlinear_cache
     prob <: CurveFitProblem

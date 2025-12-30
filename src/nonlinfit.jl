@@ -26,7 +26,7 @@ LM_QR(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.QR
 LM_CH(; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = LinearSolve.CholeskyFactorization(); kwargs...)
 
 # NLLS Solvers
-@concrete struct GenericNonlinearCurveFitCache
+@concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     cache
     alg
