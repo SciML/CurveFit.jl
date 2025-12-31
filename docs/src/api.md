@@ -3,8 +3,7 @@ CurrentModule = CurveFit
 ```
 # API Reference
 
-```@index
-```
+This page contains the documenation for all public API exported by CurveFit.
 
 ## Problem Types
 
@@ -41,4 +40,21 @@ CommonSolve.solve!
 CommonSolve.solve!(::AbstractCurveFitCache)
 CommonSolve.init
 CommonSolve.init(::AbstractCurveFitProblem)
+```
+
+## StatsAPI Interface
+
+```@docs
+StatsAPI.coef
+StatsAPI.residuals
+StatsAPI.dof
+StatsAPI.dof_residual
+StatsAPI.nobs
+StatsAPI.predict
+StatsAPI.fitted
+mse
+StatsAPI.rss
+StatsAPI.vcov
+StatsAPI.stderror
+StatsAPI.confint
 ```
