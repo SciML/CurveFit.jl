@@ -11,7 +11,7 @@ Pkg.add("CurveFit")
 
 ## Quick start
 
-```@example quick start
+```@example quick_start
 using CurveFit
 
 # Sample data
@@ -32,6 +32,5 @@ println("Prediction at x=5: ", sol(5.0))
 
 ## See next
 
-- [Manual](manual.md) – Full documentation of problem types, algorithms, and usage details.  
-- [Tutorial](tutorial.md) – Step-by-step examples to get started with common fits.  
-- [API Reference](api.md) – Complete list of exported functions, algorithms, and types.
+- [Basics](@ref) – Full documentation of problem types, algorithms, and usage details.  
+- [Tutorial](@ref) – Step-by-step examples to get started with common fits.  

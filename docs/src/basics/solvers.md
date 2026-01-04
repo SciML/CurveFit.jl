@@ -1,37 +1,10 @@
-# Manual
-
-## Overview
-
-CurveFit.jl provides a unified interface for defining and solving curve fitting problems
-in Julia. It includes built-in solvers for linear problems and selected special-function 
-models. For general nonlinear curve fitting, CurveFit delegates the solution process to
-`NonlinearSolve.jl` by using its nonlinear least-squares solvers. The package integrates
-with the `CommonSolve.jl` and `StatsAPI.jl` interfaces.
-
-## Problem types
-
-CurveFit defines two primary problem types: `CurveFitProblem` and `NonlinearCurveFitProblem`. 
-These types encapsulate the data to be fitted, along with optional model definitions and
-initial parameter guesses. The data and the initial guess are subtypes of `AbstractArray`.
-
-A `CurveFitProblem` represents a general curve fitting problem and requires only input
-data `x` and output data `y`. When no model is specified, both `x` and `y` must be
-one-dimensional arrays.
-
-`NonlinearCurveFitProblem` is a convenience constructor for defining nonlinear fitting
-problems. It returns a `CurveFitProblem` object with a user-provided model function 
-and an initial guess `u0` for the model parameters. The model is supplied as a standard 
-Julia function and is internally wrapped as a `NonlinearFunction`. For details, see the 
-documentation for [`NonlinearFunction`](https://docs.sciml.ai/NonlinearSolve/stable/basics/nonlinear_functions/).
-If the output data `y` is not provided, it is treated as a zero vector.
-
-## Algorithms
+# Solvers
 
 CurveFit provides built-in solvers for linear curve fitting problems. Nonlinear problems
 are delegated to `NonlinearSolve.jl`. In addition, CurveFit includes specialized algorithms
 for selected nonstandard models.
 
-### Linear fitting
+## Linear fitting
 
 Linear curve fitting in CurveFit solves problems of the general form $ f_y(y) = a \cdot f_x(x) + b $
 where `x` and `y` are the data points being fitted and `a` and `b` are the fit parameters.
@@ -49,10 +22,18 @@ where both transformations are identity functions. Users may supply custom trans
 to define alternative linear relationships. The inverse transformation is computed using
 `InverseFunctions.jl`.
 
-Several predefined transformed linear fitting algorithms are exported by CurveFit. See the
-[API Reference](@ref) for more details.
+These are the convenience constructors exported by CurveFit used for defining some linear
+curve fitting algorithms:
 
-### Nonlinear fitting
+```@docs
+LinearCurveFitAlgorithm
+LogCurveFitAlgorithm
+PowerCurveFitAlgorithm
+ExpCurveFitAlgorithm
+KingCurveFitAlgorithm
+```
+
+## Nonlinear fitting
 
 Nonlinear curve fitting problems are solved through NonlinearSolve.jl. The user defines 
 a nonlinear problem using `NonlinearCurveFitProblem`, supplying a model function and an 
@@ -66,7 +47,7 @@ By default, NonlinearSolve.jl automatically selects an appropriate nonlinear lea
 algorithm. Advanced users may explicitly specify a solver, such as `LevenbergMarquardt` or
 `GaussNewton`. Documentation for available solvers can be found [here](https://docs.sciml.ai/NonlinearSolve/stable/solvers/nonlinear_least_squares_solvers/).
 
-#### Levenberg–Marquardt optional constructor
+### Levenberg–Marquardt optional constructor
 
 The Levenberg–Marquardt algorithm requires repeatedly solving linear systems involving the
 Jacobian matrix. These systems are solved using matrix factorizations selected by
@@ -80,14 +61,19 @@ the Levenberg–Marquardt iterations.
 All keyword arguments are forwarded to the underlying `LevenbergMarquardt` constructor.
 For an overview of available linear solvers and their proper selection, see the
 [LinearSolve.jl documentation](https://docs.sciml.ai/LinearSolve/stable/basics/algorithm_selection/).
+Also, see [Tutorial](@ref).
 
-### Special functions
+```@docs
+LM_linsolve
+```
+
+## Special functions
 
 CurveFit provides specialized algorithms for fitting selected classes of nonlinear models
 with known structure. These algorithms exploit problem-specific properties to improve
 robustness and performance compared to fully generic nonlinear least-squares approaches.
 
-#### Modified King fitting
+### Modified King fitting
 
 The Modified King fit algorithm is designed for the model function of the form:
 
@@ -103,7 +89,11 @@ However, the user can pass an initial guess for the coefficients `a`, `b` and `n
 initial guess is not provided CurveFit will obatin it internally by using the related linear
 King fit.
 
-#### Sum of exponentials fitting
+```@docs
+ModifiedKingCurveFitAlgorithm
+```
+
+### Sum of exponentials fitting
 
 The sum of exponentials fitting algorithm is defined for models of the form:
 
@@ -123,9 +113,13 @@ functions.
 
 For more details see [here](https://math.stackexchange.com/questions/1428566/fit-sum-of-exponentials).
 
-#### Polynomial fitting
+```@docs
+ExpSumFitAlgorithm
+```
 
-##### Standard
+### Polynomial fitting
+
+#### Standard
 
 Polynomial fitting solves problems of the form
 
@@ -143,7 +137,11 @@ not support user-provided initial guesses. It is recommended to use numerically
 stable solvers such as QR-based factorizations. CurveFit allows the linear solver
 to be customized via the `linsolve_algorithm` field of `PolynomialFitAlgorithm`.
 
-##### Rational
+```@docs
+PolynomialFitAlgorithm
+```
+
+#### Rational
 
 Rational polynomial fitting solves problems of the form
 
@@ -167,22 +165,7 @@ If the user chooses a nonlinear algorithm, then the problem is solved via Nonlin
 In this case the user can provide an initial guess. If it is not provided, then CurveFit
 will obtain one from the linear rational fit.
 
-## Solutions
- 
-Curve fitting results are returned as `CurveFitSolution` objects. These objects store the
-fitted coefficients, residuals, the problem solved and the algorithm used to solve it. It also
-stores a return code which holds information about the success of the solver. For more information
-on the `ReturnCode.T` type, see [SciMLBase.jl](https://docs.sciml.ai/SciMLBase/stable/interfaces/Solutions/).
-`CurveFitSolution` can be evaluated as a callable function on new input data. 
-
-`CurveFitSolution` objects can be treated as statistical models. CurveFit defines methods for 
-the `CurveFitSolution` type. To see all of the StatsAPI.jl functions implemented by CurveFit,
-see [API Reference](@ref).
-
-##  Summary
-
-CurveFit provides a simple to use, extensible interface for linear, nonlinear, and
-specialized curve fitting in Julia. It follows the standard SciML problem–solver
-design, enabling consistent problem definitions, flexible solver usage, and access
-to common statistical diagnostics via StatsAPI.jl.
+```@docs
+RationalPolynomialFitAlgorithm
+```
 
