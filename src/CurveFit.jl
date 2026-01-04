@@ -42,6 +42,7 @@ export LinearCurveFitAlgorithm, LogCurveFitAlgorithm, PowerCurveFitAlgorithm,
 export RationalPolynomialFitAlgorithm
 export KingCurveFitAlgorithm, ModifiedKingCurveFitAlgorithm
 export ExpSumFitAlgorithm
+export LM_linsolve
 
 export CurveFitSolution
 

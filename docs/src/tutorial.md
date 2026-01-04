@@ -1,9 +1,7 @@
 # Tutorial
 
-This tutorial covers the supported problem types. This includes
-linear and non linear curve fitting along with some special cases 
-such as polynomial, exponential, power law and sum of exponentials
-curve fitting.
+This tutorial introduces the basic workflow of CurveFit by walking through
+several simple examples. 
 
 ## Linear Fitting
 
@@ -135,6 +133,108 @@ sol = solve(prob, ExpSumFitAlgorithm(n=1, withconst=true))
 println("Constant (k): ", sol.u.k[])
 println("Amplitude (p): ", sol.u.p[])
 println("Decay rate (λ): ", sol.u.λ[])
+```
+
+## Modified King fitting
+
+Fit with the modified king law: `x^2 = a + b * y^n`
+
+```@example king
+using CurveFit
+
+# Generate the data: x^2 = a + b * y^n
+x = collect(10.0:20.0)
+θ_ref = [5.0, 1.3, 2.5]
+y = @. ((X^2 - θ_ref[2])/θ_ref[3])^(1/θ_ref[1])
+
+# Works with and without an initial guess
+prob = CurveFitProblem(x, y)
+sol = solve(prob, ModifiedKingCurveFitAlgorithm())
+
+println("Fitted parameters: ", sol.u)
+```
+
+## Rational polynomial fitting
+
+Fit a rational function: `y = p(x)/q(x)`
+
+```@example rational
+using CurveFit
+
+# Generate sample data: y = (1 + 2*x) / (1 + 0.5*x - 0.1*x^2)
+x = collect(range(0, stop=5, length=30))
+y = @. (1.0 + 2.0*x) / (1.0 + 0.5*x - 0.1*x^2)
+
+# Create the problem and solve with numerator degree 1, denominator degree 2
+prob = CurveFitProblem(x, y)
+alg = RationalPolynomialFitAlgorithm(num_degree=1, den_degree=2)
+sol = solve(prob, alg)
+
+# Access fitted coefficients
+# Numerator: p0 + p1*x
+println("Numerator coefficients: ", sol.u[1:2])
+# Denominator: 1 + q1*x + q2*x^2
+println("Denominator coefficients: ", vcat(1.0, sol.u[3:4]))
+
+# Evaluate the solution at a point
+println("Prediction at x=2: ", sol(2.0))
+```
+
+## Using StatsAPI
+
+```@example stats
+using CurveFit
+using NonlinearSolve
+
+# Generate sample data: y = 3 + 2*x + x^1
+X = collect(1.0:10.0)
+θ_ref = [3.0, 2.0, 1.0]
+
+function f(θ, X)
+    @. θ[1] + θ[2]*X + X^θ[3]
+end
+
+Y = f(θ_ref, X)
+
+# Wrap as NonlinearFunction and define problem
+nonf = NonlinearFunction(f)
+prob = NonlinearCurveFitProblem(nonf, [0.5, 0.5, 0.5], X, Y)
+
+# Solve using Levenberg-Marquardt
+sol = solve(prob, LevenbergMarquardt())
+
+# --- StatsAPI functions ---
+
+# Access fitted coefficients, [θ1, θ2, θ3]
+println("Coefficients: ", coef(sol))          
+
+# Residuals
+println("Residuals: ", residuals(sol))
+
+# Predicted values at a single point
+println("Prediction at X=5: ", predict(sol, 5.0))
+
+# Predicted values at all X
+println("Fitted values: ", fitted(sol))
+
+# Number of observations and degrees of freedom
+println("Number of observations: ", nobs(sol))
+println("Degrees of freedom: ", dof(sol))
+println("Residual degrees of freedom: ", dof_residual(sol))
+
+# Sum of squared residuals and mean squared error
+println("RSS: ", rss(sol))
+println("MSE: ", mse(sol))
+
+# Check convergence
+println("Converged: ", isconverged(sol))
+
+# Covariance matrix and standard errors
+vcov(sol)
+stderror(sol)
+
+# Confidence intervals
+confint(sol)
 ```
 
 ## API
