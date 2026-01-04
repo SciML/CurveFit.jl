@@ -1,35 +1,94 @@
+@doc doc"""
+    coef(sol::CurveFitSolution)
+
+Return the fitted coefficients.
+
+The ordering of coefficients depends on the fitting algorithm used.
+"""
 function coef(sol::CurveFitSolution)
     return sol.u
 end
 
+@doc doc"""
+    residuals(sol::CurveFitSolution)
+
+Return the residuals of the fitted model.
+
+Residuals are defined as the difference between the observed data and the model
+predictions evaluated at the fitted coefficients.
+"""
 function residuals(sol::CurveFitSolution)
     return sol.resid
 end
 
+@doc doc"""
+    predict(sol::CurveFitSolution, x = sol.prob.x)
+
+Evaluate the fitted model with new data.
+
+If `x` is not provided, predictions are returned at the original data points
+used during fitting.
+"""
 function predict(sol::CurveFitSolution, x = sol.prob.x)
     return sol(x)
 end
 
+@doc doc"""
+    fitted(sol::CurveFitSolution)
+
+Return the fitted values at the original data points.
+"""
 function fitted(sol::CurveFitSolution)
     return sol(sol.prob.x)
 end
 
+@doc doc"""
+    nobs(sol::CurveFitSolution)
+
+Return the number of observations used in the fit.
+"""
 function nobs(sol::CurveFitSolution)
     return length(sol.prob.y)
 end
 
+@doc doc"""
+    dof(sol::CurveFitSolution)
+
+Return the number of degrees of freedom of the model.
+"""
 function dof(sol::CurveFitSolution)
     return length(sol.u)
 end
 
+@doc doc"""
+    dof_residual(sol::CurveFitSolution)
+
+Return the residual degrees of freedom.
+
+This is defined as `nobs(sol) - dof(sol)`.
+"""
 function dof_residual(sol::CurveFitSolution)
     return nobs(sol) - dof(sol)
 end
 
+@doc doc"""
+    rss(sol::CurveFitSolution)
+
+Return the residual sum of squares (RSS).
+
+This is defined as `sum(abs2, residuals(sol))`.
+"""
 function rss(sol::CurveFitSolution)
     return sum(abs2, residuals(sol))
 end
 
+@doc doc"""
+    mse(sol::CurveFitSolution)
+
+Return the mean squared error of the fit.
+
+The mean squared error is computed as `rss(sol) / dof_residual(sol)`.
+"""
 function mse(sol::CurveFitSolution)
     return rss(sol) / dof_residual(sol)
 end
@@ -206,12 +265,27 @@ function jacobian(sol::CurveFitSolution)
     end
 end
 
+@doc doc"""
+    isconverged(sol::CurveFitSolution)
 
+Return `true` if the underlying solver successfully converged.
+
+This is determined from the solver return code.
+"""
 function isconverged(sol::CurveFitSolution)
     return sol.retcode == ReturnCode.Success
 end
 
 
+@doc doc"""
+    vcov(sol::CurveFitSolution)
+
+Return the variance–covariance matrix of the fitted coefficients.
+
+The covariance matrix is computed using the Jacobian of the fitted model and a
+QR-based least squares formulation. This function is defined for solutions to
+both linear and nonlinear problems.
+"""
 function vcov(sol::CurveFitSolution)
     J = jacobian(sol)
 
@@ -232,7 +306,15 @@ function vcov(sol::CurveFitSolution)
 end
 
 
-function stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real = 0)
+@doc doc"""
+    stderror(sol::CurveFitSolution; rtol=NaN, atol=0)
+
+Return the standard errors of the fitted coefficients.
+
+Standard errors are computed as the square roots of the diagonal elements of the
+variance–covariance matrix.
+"""
+function stderror(sol::CurveFitSolution; rtol::Real=NaN, atol::Real=0)
     covar = vcov(sol)
     vars = LinearAlgebra.diag(covar)
 
@@ -258,7 +340,15 @@ function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, ato
     return std_errors * critical_values
 end
 
-function confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
-    margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
+
+@doc doc"""
+    confint(sol::CurveFitSolution; level=0.95, rtol=NaN, atol=0)
+
+Return confidence intervals for the fitted parameters.
+
+The confidence intervals are returned as a vector of `(lower, upper)` tuples.
+"""
+function confint(sol::CurveFitSolution; level=0.95, rtol::Real=NaN, atol::Real=0)
+    margin_of_errors = margin_error(sol, 1 - level; rtol=rtol, atol=atol)
     return collect(zip(coef(sol) .- margin_of_errors, coef(sol) .+ margin_of_errors))
 end

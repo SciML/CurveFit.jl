@@ -9,6 +9,7 @@ __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target)
     internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, f.f)
     @set! f.f = internal_f
+    @set! f.resid_prototype = similar(target)
     return f
 end
 
@@ -19,6 +20,16 @@ function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     resid .-= nlf.target
     return resid
 end
+
+#Matrix decomposition choices for LevenbergMarquardt
+@doc doc"""
+    LM_linsolve(lin_solve = nothing; kwargs...)
+
+Returns the `LevenbergMarquardt` algorithm with the specified 
+linear solver. The recommended solvers are `QRFactorization`
+and `CholeskyFactorization`. For more detail see [LinearSolve.jl](https://docs.sciml.ai/LinearSolve/stable/).    
+"""
+LM_linsolve(lin_solve = nothing; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = lin_solve; kwargs...)
 
 # NLLS Solvers
 @concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
