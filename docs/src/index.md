@@ -33,4 +33,4 @@ println("Prediction at x=5: ", sol(5.0))
 ## See next
 
 - [Basics](@ref) – Full documentation of problem types, algorithms, and usage details.  
-- [Tutorial](@ref) – Step-by-step examples to get started with common fits.  
+- [Tutorials](@ref) – Step-by-step examples to get started with common fits.  

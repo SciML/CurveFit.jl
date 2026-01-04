@@ -104,21 +104,3 @@ suggest that the data provide limited information about a coefficient.
 
 Confidence intervals are commonly used to assess the reliability of the
 fitted coefficients.
-
-## Public interface
-
-```@docs
-coef
-residuals
-dof
-dof_residual
-nobs
-predict
-fitted
-mse
-rss
-isconverged
-vcov
-stderror
-confint
-```

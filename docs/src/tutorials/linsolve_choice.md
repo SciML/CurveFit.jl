@@ -29,8 +29,10 @@ or performance in some cases.
 
 CurveFit provides the `LM_linsolve` constructor to allow the user to
 choose the linear solver used inside the Levenberg–Marquardt algorithm.
-All keyword arguments are fowarded to the underlying `LevenbergMarquardt`
-constructor.  
+It takes one argument, the linear solver of users choice. By default the
+argument is set to nothing and if the user does not provide their linear
+solver choice NonlinearSolve.jl will do it for them. All keyword arguments
+are fowarded to the underlying `LevenbergMarquardt` constructor.  
 
 ### Example
 
@@ -48,8 +50,6 @@ Y = f(θ_true, X)
 
 nonf = NonlinearFunction(f)
 alg = LM_linsolve(QRFactorization())
-# Alternatively, alg = LM_linsolve(CholeskyFactorization())
-# Also an option, although used less commonly, alg = LM_linsolve(LUFactorization()) 
  
 prob = NonlinearCurveFitProblem(nonf, [2.1, 3.3, 0.1], X, Y)
 sol = solve(prob, alg)

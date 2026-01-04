@@ -8,4 +8,28 @@ on the `ReturnCode.T` type, see [SciMLBase.jl](https://docs.sciml.ai/SciMLBase/s
 
 `CurveFitSolution` objects can be treated as statistical models. CurveFit defines methods for 
 the `CurveFitSolution` type. To see all of the StatsAPI.jl functions implemented by CurveFit,
-and how they are used, see [Tutorial](@ref).
+and how they are used, see [Tutorials](@ref).
+
+```@docs
+CurveFitSolution
+```
+
+List of the StatsAPI.jl functions CurveFit implements:
+
+```@docs
+coef
+residuals
+dof
+dof_residual
+nobs
+predict
+fitted
+mse
+rss
+isconverged
+vcov
+stderror
+confint
+```
+
+Usage details for these statistical methods can be found in [Tutorials](@ref).
