@@ -32,9 +32,9 @@ end
 
 function __calc_integral_rules!(
         polyvals_factorized, integralvals::AbstractVector, n::nT, m::Integer
-) where {nT <: Integer}
-    @assert n≥1 "n=$n should be positive integer"
-    @assert n + m≤33 "m + n=$n + $m should be less than or equal to 33"
+    ) where {nT <: Integer}
+    @assert n ≥ 1 "n=$n should be positive integer"
+    @assert n + m ≤ 33 "m + n=$n + $m should be less than or equal to 33"
 
     # evaluate m-th order polynomial terms integrated cumulatively n-times
     num = m^(n - 1)
@@ -62,9 +62,9 @@ end
 function __cumulative_integrals!(
         Y::AbstractMatrix{T}, S::AbstractMatrix{T}, coeff::AbstractMatrix{T},
         x::AbstractVector{T}, y::AbstractVector{T}, n::Integer, m::Integer
-) where {T <: Real}
-    @assert n>0 "n=$n should be a positive integer"
-    @assert m>0 "m=$m should be a positive integer"
+    ) where {T <: Real}
+    @assert n > 0 "n=$n should be a positive integer"
+    @assert m > 0 "m=$m should be a positive integer"
 
     fill!(S, false)
 
@@ -98,7 +98,7 @@ end
 
 function __expsum_fill_X!(
         x::AbstractVector, λ::AbstractVector, X::AbstractMatrix, n::Integer
-)
+    )
     @inbounds for j in 1:n
         @simd ivdep for i in axes(X, 1)
             X[i, j] = exp(x[i] * λ[j])
@@ -111,7 +111,7 @@ end
 function __expsum_fill_Y!(
         Y::AbstractMatrix{T}, S::AbstractMatrix{T}, coeff::AbstractMatrix{T},
         x::AbstractVector{T}, y::AbstractVector{T}, n::Integer, m::Integer
-) where {T <: Real}
+    ) where {T <: Real}
     __cumulative_integrals!(Y, S, coeff, x, y, n, m)
 
     fill!(view(Y, 1, :), false)
@@ -148,7 +148,7 @@ end
 
 function CommonSolve.init(
         prob::CurveFitProblem, alg::ExpSumFitAlgorithm; kwargs...
-)
+    )
     @assert !is_nonlinear_problem(prob) "Exponential sum fitting only works with linear \
                                          problems"
 

@@ -56,14 +56,14 @@ end
 
 function CommonSolve.init(
         prob::CurveFitProblem, alg::RationalPolynomialFitAlgorithm; kwargs...
-)
+    )
     @assert !is_nonlinear_problem(prob) "Rational polynomial fitting doesn't work with \
                                          nlfunc specification."
 
     coeffs_length = alg.num_degree + alg.den_degree + 1
 
     if alg.alg isa AbstractLinearAlgorithm
-        @assert prob.u0===nothing "Rational polynomial fit doesn't support initial \
+        @assert prob.u0 === nothing "Rational polynomial fit doesn't support initial \
                                    guess (u0) specification"
 
         A = similar(prob.x, length(prob.x), coeffs_length)
@@ -109,7 +109,7 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
         # But StatsAPI expects y - p/q (nonlinear residual) or linearized?
         # Standard definition is y - y_pred.
         # So we should compute y - p(x)/q(x) using the fitted params.
-        
+
         # We need to construct the RationalPolynomial to eval it.
         # Helper function from rationalfit.jl isn't easily accessible inside solve! without alloc.
         # But we can reuse the logic from call:
@@ -142,11 +142,12 @@ function CommonSolve.solve!(cache::NonlinearRationalFitCache)
         cache.prob.x,
         cache.prob.y
     )
-    
+
     sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)
-    
+
     return CurveFitSolution(
-        cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
+        cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original
+    )
 end
 
 function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
