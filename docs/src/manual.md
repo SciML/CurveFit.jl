@@ -1,4 +1,4 @@
-# Manual
+# Basic Overview
 
 CurveFit.jl provides a unified interface for defining and solving curve fitting problems
 in Julia. It includes built-in solvers for linear problems and selected special-function 
