@@ -1,5 +1,5 @@
-@testitem "StatsAPI Integration" begin
-    using StatsAPI
+@testitem "StatsAPI interface" begin
+    using CurveFit
     using NonlinearSolve
     using LinearAlgebra
     using LinearSolve
