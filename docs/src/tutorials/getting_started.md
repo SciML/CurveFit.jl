@@ -1,4 +1,4 @@
-# Tutorial
+# Getting started with CurveFit.jl
 
 This tutorial introduces the basic workflow of CurveFit by walking through
 several simple examples. 
@@ -179,64 +179,3 @@ println("Denominator coefficients: ", vcat(1.0, sol.u[3:4]))
 # Evaluate the solution at a point
 println("Prediction at x=2: ", sol(2.0))
 ```
-
-## Using StatsAPI
-
-```@example stats
-using CurveFit
-using NonlinearSolve
-
-# Generate sample data: y = 3 + 2*x + x^1
-X = collect(1.0:10.0)
-θ_ref = [3.0, 2.0, 1.0]
-
-function f(θ, X)
-    @. θ[1] + θ[2]*X + X^θ[3]
-end
-
-Y = f(θ_ref, X)
-
-# Wrap as NonlinearFunction and define problem
-nonf = NonlinearFunction(f)
-prob = NonlinearCurveFitProblem(nonf, [0.5, 0.5, 0.5], X, Y)
-
-# Solve using Levenberg-Marquardt
-sol = solve(prob, LevenbergMarquardt())
-
-# --- StatsAPI functions ---
-
-# Access fitted coefficients, [θ1, θ2, θ3]
-println("Coefficients: ", coef(sol))          
-
-# Residuals
-println("Residuals: ", residuals(sol))
-
-# Predicted values at a single point
-println("Prediction at X=5: ", predict(sol, 5.0))
-
-# Predicted values at all X
-println("Fitted values: ", fitted(sol))
-
-# Number of observations and degrees of freedom
-println("Number of observations: ", nobs(sol))
-println("Degrees of freedom: ", dof(sol))
-println("Residual degrees of freedom: ", dof_residual(sol))
-
-# Sum of squared residuals and mean squared error
-println("RSS: ", rss(sol))
-println("MSE: ", mse(sol))
-
-# Check convergence
-println("Converged: ", isconverged(sol))
-
-# Covariance matrix and standard errors
-vcov(sol)
-stderror(sol)
-
-# Confidence intervals
-confint(sol)
-```
-
-## API
-
-See the [API Reference](@ref) page for detailed documentation of all exported functions.
