@@ -145,7 +145,7 @@ using CurveFit
 # Generate the data: x^2 = a + b * y^n
 x = collect(10.0:20.0)
 θ_ref = [5.0, 1.3, 2.5]
-y = @. ((X^2 - θ_ref[2])/θ_ref[3])^(1/θ_ref[1])
+y = @. ((x^2 - θ_ref[2])/θ_ref[3])^(1/θ_ref[1])
 
 # Works with and without an initial guess
 prob = CurveFitProblem(x, y)

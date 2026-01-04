@@ -5,6 +5,9 @@ as implemeted by CurveFit. Solvers find coefficients of the model so that
 it fits the data as best as it can. Statistical tools allow user to assess
 how good and reliable their fitting result is. 
 
+After solving a curve fitting problem (does not have to be a nonlinear problem),
+you can use statistical functions on the `CurveFitSolution` object. 
+
 ## Setup
 
 ```@example setup
@@ -15,16 +18,31 @@ x = collect(1.0:10.0)
 θ_true = [3.0, 2.0, 1.5]
 
 f(θ, x) = @. θ[1] + θ[2] * x + x^θ[3]
-Y = f(θ_true, x)
+y = f(θ_true, x)
 
 nonf = NonlinearFunction(f)
-prob = NonlinearCurveFitProblem(nonf, [1.0, 1.0, 1.0], X, Y)
+prob = NonlinearCurveFitProblem(nonf, [1.0, 1.0, 1.0], x, y)
 
 sol = solve(prob, LevenbergMarquardt())
-```
 
-After solving a curve fitting problem (does not have to be a nonlinear problem),
-you can use statistical functions on the `CurveFitSolution` object. 
+residuals(sol)
+ 
+rss(sol)
+mse(sol)
+
+nobs(sol)
+ 
+dof(sol)
+dof_residual(sol)
+
+predict(sol)
+isconverged(sol)
+
+stderror(sol)
+vcov(sol)
+
+confint(sol)
+```
 
 ## Basic quantities
 
@@ -37,7 +55,7 @@ The number of observations corresponds to the size of the data set used, i.e
 the number of data points.
 
 In CurveFit, `dof` returns the number of the coefficients used in the model,
-while `resid_dof` returns the difference between the number of observations
+while `dof_residual` returns the difference between the number of observations
 and degrees of freedom (`dof`). These quantities are used internally in
 other calculations.
 
@@ -45,21 +63,6 @@ The `predict` gives a prediction using the fitted coefficients and new data.
 If only the solution object is passed, original data will be used in calculation.
 `isconverged` checks if the solver was successful in solving the problem.
 
-
-```@example start
-residuals(sol)
-
-rss(sol)
-mse(sol)
-
-nobs(sol)
-
-dof(sol)
-residual_dof(sol)
-
-predict(sol)
-isconverged(sol)
-```
 
 ## Parameter uncertainty
 
@@ -69,11 +72,6 @@ coefficients under standard least squares assumptions. The diagonal entries
 correspond to the variance of each coefficient estimate, while the off-diagonal
 entries quantify correlations between coefficient. Standard errors are obtained 
 as the square roots of the diagonal variances.
-
-```@example covariance
-stderror(sol)
-vcov(sol)
-```
 
 ## Confidence intervals
 
@@ -88,10 +86,6 @@ in that case is 0.05. Critial values of the normal distributions are
 calculated in correspondence with α. Upper and lower bounds of the confidence
 intervals are then calculated as the product of the standard errors and the
 critical values ± the fitted coefficient.
-
-```@example confidence
-confint(sol)
-```
 
 ### Interpreting confidence intervals
 
