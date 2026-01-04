@@ -55,11 +55,11 @@ end
     prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], X)
     sol = solve(prob)
 
-    @test sol.u ≈ a0 atol=1.0e-7
+    @test sol.u ≈ a0 atol = 1.0e-7
     @test SciMLBase.successful_retcode(sol.retcode)
 
     @testset for val in (0.0, 1.5, 4.5, 10.0)
-        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
+        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol = 1.0e-7
     end
 end
 
@@ -80,11 +80,11 @@ end
     prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], X)
     sol = solve(prob)
 
-    @test sol.u ≈ a0 atol=1.0e-7
+    @test sol.u ≈ a0 atol = 1.0e-7
     @test SciMLBase.successful_retcode(sol.retcode)
 
     @testset for val in (0.0, 1.5, 4.5, 10.0)
-        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
+        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol = 1.0e-7
     end
 end
 
@@ -101,11 +101,11 @@ end
     prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], X)
     sol = solve(prob)
 
-    @test sol.u ≈ a0 atol=1.0e-7
+    @test sol.u ≈ a0 atol = 1.0e-7
     @test SciMLBase.successful_retcode(sol.retcode)
 
     @testset for val in range(minimum(E), stop = maximum(E), length = 10)
-        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol=1.0e-7
+        @test sol([val 0.0])[1] ≈ fn(a0, [val 0.0])[1] atol = 1.0e-7
     end
 end
 
@@ -122,7 +122,7 @@ end
     prob1 = NonlinearCurveFitProblem(fn, [0.1], x, y_exact)
     sol1 = solve(prob1)
 
-    @test sol1.u[1] ≈ 1.0 atol = 1e-6
+    @test sol1.u[1] ≈ 1.0 atol = 1.0e-6
     @test SciMLBase.successful_retcode(sol1.retcode)
     @test !isnan(sol1.u[1])
 
@@ -131,7 +131,7 @@ end
     prob2 = NonlinearCurveFitProblem(fn, [0.1], x, y_noisy)
     sol2 = solve(prob2)
 
-    @test sol2.u[1] ≈ 1.0 atol = 1e-5
+    @test sol2.u[1] ≈ 1.0 atol = 1.0e-5
     @test SciMLBase.successful_retcode(sol2.retcode)
     @test !isnan(sol2.u[1])
 
@@ -141,7 +141,7 @@ end
     prob3 = NonlinearCurveFitProblem(fn2, [0.1], x, y2_exact)
     sol3 = solve(prob3)
 
-    @test sol3.u[1] ≈ 1.0 atol = 1e-6
+    @test sol3.u[1] ≈ 1.0 atol = 1.0e-6
     @test SciMLBase.successful_retcode(sol3.retcode)
     @test !isnan(sol3.u[1])
 
@@ -150,7 +150,7 @@ end
     prob4 = NonlinearCurveFitProblem(fn2, [0.1], x, y2_noisy)
     sol4 = solve(prob4)
 
-    @test sol4.u[1] ≈ 1.0 atol = 1e-5
+    @test sol4.u[1] ≈ 1.0 atol = 1.0e-5
     @test SciMLBase.successful_retcode(sol4.retcode)
     @test !isnan(sol4.u[1])
 end

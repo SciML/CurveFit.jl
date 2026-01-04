@@ -1,6 +1,6 @@
 function __linear_fit_internal(
         fnx::F1, x::AbstractArray{T1}, fny::F2, y::AbstractArray{T2}
-) where {F1, F2, T1, T2}
+    ) where {F1, F2, T1, T2}
     T = promote_type(T1, T2)
     m = length(x)
 
@@ -41,7 +41,7 @@ end
 function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; kwargs...)
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
-    @assert prob.u0===nothing "Linear fit doesn't support initial guess (u0) \
+    @assert prob.u0 === nothing "Linear fit doesn't support initial guess (u0) \
                                specification"
 
     return GenericLinearFitCache(prob, kwargs, alg)
@@ -74,10 +74,10 @@ end
 
 function CommonSolve.init(
         prob::CurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
-)
+    )
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
-    @assert prob.u0===nothing "Polynomial fit doesn't support initial guess \
+    @assert prob.u0 === nothing "Polynomial fit doesn't support initial guess \
                                (u0) specification"
 
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)

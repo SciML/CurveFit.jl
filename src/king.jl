@@ -16,7 +16,7 @@ end
 
 function CommonSolve.init(
         prob::CurveFitProblem, alg::ModifiedKingCurveFitAlgorithm; kwargs...
-)
+    )
     @assert !is_nonlinear_problem(prob) "Modified King's law fitting doesn't work with \
                                          nlfunc specification."
 
@@ -61,7 +61,7 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
         stack((cache.prob.x, cache.prob.y); dims = 1),
         nothing
     )
-    
+
     sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)
     return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
 end

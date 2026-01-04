@@ -53,7 +53,7 @@ is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
 function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing)
     if nlfunc === nothing
-        @assert ndims(x)==ndims(y)==1 "x and y must be 1-dimensional arrays for linear \
+        @assert ndims(x) == ndims(y) == 1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
     end
 
@@ -108,7 +108,7 @@ original space (can be specified by defining `InverseFunctions.inverse`).
 """
 function LinearCurveFitAlgorithm(;
         xfun = identity, yfun = identity, yfun_inverse = inverse(yfun)
-)
+    )
     return LinearCurveFitAlgorithm(xfun, yfun, yfun_inverse)
 end
 
@@ -326,14 +326,14 @@ function CommonSolve.init(prob::AbstractCurveFitProblem; kwargs...)
     return init(
         prob,
         is_nonlinear_problem(prob) ? __FallbackNonlinearFitAlgorithm(nothing) :
-        error("Default algorithm is not defined for linear problems");
+            error("Default algorithm is not defined for linear problems");
         kwargs...
     )
 end
 
 function CommonSolve.init(
         prob::AbstractCurveFitProblem, alg::AbstractNonlinearAlgorithm; kwargs...
-)
+    )
     @assert is_nonlinear_problem(prob) "Nonlinear algorithm can only be used with \
                                        nonlinear problems"
     return init(prob, __FallbackNonlinearFitAlgorithm(alg); kwargs...)

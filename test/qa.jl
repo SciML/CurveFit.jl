@@ -1,4 +1,4 @@
-@testitem "Aqua tests" tags=[:nopre] begin
+@testitem "Aqua tests" tags = [:nopre] begin
     using Aqua
     Aqua.test_all(CurveFit)
 end

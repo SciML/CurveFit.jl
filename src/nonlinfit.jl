@@ -36,10 +36,10 @@ end
 
 function CommonSolve.init(
         prob::CurveFitProblem, alg::__FallbackNonlinearFitAlgorithm; kwargs...
-)
+    )
     @assert is_nonlinear_problem(prob) "Nonlinear curve fitting only works with nonlinear \
                                         problems"
-    @assert prob.u0!==nothing "Nonlinear curve fitting requires an initial guess (u0)"
+    @assert prob.u0 !== nothing "Nonlinear curve fitting requires an initial guess (u0)"
 
     return GenericNonlinearCurveFitCache(
         prob,

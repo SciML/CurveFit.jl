@@ -27,20 +27,20 @@ end
     fn(E) = ((E .^ 2 .- A) ./ B) .^ (1 ./ n)
 
     algs = [
-    # TODO: broken due to https://github.com/SciML/NonlinearSolve.jl/issues/504
-    # nothing,
-        LevenbergMarquardt()
+        # TODO: broken due to https://github.com/SciML/NonlinearSolve.jl/issues/504
+        # nothing,
+        LevenbergMarquardt(),
     ]
     u0s = [nothing, fill(1.0, 3)]
     for alg in algs, u0 in u0s
         prob = CurveFitProblem(E, U; u0 = u0)
         sol = solve(prob, ModifiedKingCurveFitAlgorithm(alg))
 
-        @test sol.u≈[A, B, n] atol=1.0e-8
+        @test sol.u ≈ [A, B, n] atol = 1.0e-8
         @test SciMLBase.successful_retcode(sol.retcode)
 
         @testset for val in range(minimum(E), stop = maximum(E), length = 10)
-            @test sol(val)≈fn(val) atol=1.0e-8
+            @test sol(val) ≈ fn(val) atol = 1.0e-8
         end
     end
 end
