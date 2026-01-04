@@ -16,7 +16,7 @@ using CurveFit
 
 # Sample data
 x = 0:0.1:10
-y = @. 2x + 3
+y = @. 2x + 1
 
 # Create and solve the problem
 prob = CurveFitProblem(x, y)
