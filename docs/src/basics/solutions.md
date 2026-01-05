@@ -32,4 +32,4 @@ stderror
 confint
 ```
 
-Usage details for these statistical methods can be found in [Tutorials](@ref).
+Usage details for these statistical methods can be found in [StatsAPI interface usage](@ref).

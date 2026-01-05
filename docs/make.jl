@@ -1,6 +1,7 @@
 using Documenter
 using CurveFit
 using CommonSolve
+using NonlinearSolve
 
 include("pages.jl")
 

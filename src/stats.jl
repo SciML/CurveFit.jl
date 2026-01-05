@@ -307,14 +307,14 @@ end
 
 
 @doc doc"""
-    stderror(sol::CurveFitSolution; rtol=NaN, atol=0)
+    stderror(sol::CurveFitSolution; rtol = NaN, atol = 0)
 
 Return the standard errors of the fitted coefficients.
 
 Standard errors are computed as the square roots of the diagonal elements of the
 variance–covariance matrix.
 """
-function stderror(sol::CurveFitSolution; rtol::Real=NaN, atol::Real=0)
+function stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real = 0)
     covar = vcov(sol)
     vars = LinearAlgebra.diag(covar)
 
@@ -342,13 +342,13 @@ end
 
 
 @doc doc"""
-    confint(sol::CurveFitSolution; level=0.95, rtol=NaN, atol=0)
+    confint(sol::CurveFitSolution; level = 0.95, rtol = NaN, atol = 0)
 
 Return confidence intervals for the fitted parameters.
 
 The confidence intervals are returned as a vector of `(lower, upper)` tuples.
 """
-function confint(sol::CurveFitSolution; level=0.95, rtol::Real=NaN, atol::Real=0)
-    margin_of_errors = margin_error(sol, 1 - level; rtol=rtol, atol=atol)
+function confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
+    margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
     return collect(zip(coef(sol) .- margin_of_errors, coef(sol) .+ margin_of_errors))
 end
