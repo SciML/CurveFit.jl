@@ -1,6 +1,9 @@
 using Documenter
 using CurveFit
 using CommonSolve
+using NonlinearSolve
+
+include("pages.jl")
 
 makedocs(;
     sitename = "CurveFit.jl",
@@ -14,10 +17,7 @@ makedocs(;
         canonical = "https://docs.sciml.ai/CurveFit/stable/",
         assets = String[],
     ),
-    pages = [
-        "Home" => "index.md",
-        "API Reference" => "api.md",
-    ],
+    pages = pages
 )
 
 deploydocs(;

@@ -9,6 +9,7 @@ __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target)
     internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, f.f)
     @set! f.f = internal_f
+    @set! f.resid_prototype = similar(target)
     return f
 end
 
