@@ -32,5 +32,5 @@ println("Prediction at x=5: ", sol(5.0))
 
 ## See next
 
-- [Basics](@ref) – Full documentation of problem types, algorithms, and usage details.  
-- [Tutorials](@ref) – Step-by-step examples to get started with common fits.  
+- [Basic overview](@ref) – Full documentation of problem types, algorithms, and usage details.  
+- [Getting started with CurveFit.jl](@ref) – Step-by-step examples to get started with common fits.  

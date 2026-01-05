@@ -47,14 +47,7 @@ By default, NonlinearSolve.jl automatically selects an appropriate nonlinear lea
 algorithm. Advanced users may explicitly specify a solver, such as `LevenbergMarquardt` or
 `GaussNewton`. Documentation for available solvers can be found [here](https://docs.sciml.ai/NonlinearSolve/stable/solvers/nonlinear_least_squares_solvers/).
 
-CurveFit provides a convenience constructor for choosing the linear solver passed to
-the Levenberg-Marquardt algorithm from NonlinearSolve.jl.
-
-```@docs
-LM_linsolve
-```
-
-For more information see [Tutorials](@ref).
+For more details, see [Advanced usage](@ref).
 
 ## Special functions
 

@@ -25,8 +25,6 @@ and conditioning of the Jacobian. While NonlinearSolve.jl selects a reasonable
 default, explicitly choosing a linear solver can significantly improve robustness 
 or performance in some cases.
 
-## LM_linsolve constructor
-
 CurveFit provides the `LM_linsolve` constructor to allow the user to
 choose the linear solver used inside the Levenberg–Marquardt algorithm.
 It takes one argument, the linear solver of users choice. By default the
@@ -34,7 +32,7 @@ argument is set to nothing and if the user does not provide their linear
 solver choice NonlinearSolve.jl will do it for them. All keyword arguments
 are fowarded to the underlying `LevenbergMarquardt` constructor.  
 
-### Example
+## Example
 
 ```@example qr
 using CurveFit
