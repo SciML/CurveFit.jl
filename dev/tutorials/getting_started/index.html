@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Getting started with CurveFit.jl · CurveFit.jl</title><meta name="title" content="Getting started with CurveFit.jl · CurveFit.jl"/><meta property="og:title" content="Getting started with CurveFit.jl · CurveFit.jl"/><meta property="twitter:title" content="Getting started with CurveFit.jl · CurveFit.jl"/><meta name="description" content="Documentation for CurveFit.jl."/><meta property="og:description" content="Documentation for CurveFit.jl."/><meta property="twitter:description" content="Documentation for CurveFit.jl."/><meta property="og:url" content="https://docs.sciml.ai/CurveFit/stable/tutorials/getting_started/"/><meta property="twitter:url" content="https://docs.sciml.ai/CurveFit/stable/tutorials/getting_started/"/><link rel="canonical" href="https://docs.sciml.ai/CurveFit/stable/tutorials/getting_started/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CurveFit.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li class="is-active"><a class="tocitem" href>Getting started with CurveFit.jl</a><ul class="internal"><li><a class="tocitem" href="#Linear-Fitting"><span>Linear Fitting</span></a></li><li><a class="tocitem" href="#Polynomial-Fitting"><span>Polynomial Fitting</span></a></li><li><a class="tocitem" href="#Exponential-Fitting"><span>Exponential Fitting</span></a></li><li><a class="tocitem" href="#Power-Law-Fitting"><span>Power Law Fitting</span></a></li><li><a class="tocitem" href="#Nonlinear-Curve-Fitting"><span>Nonlinear Curve Fitting</span></a></li><li><a class="tocitem" href="#Sum-of-Exponentials"><span>Sum of Exponentials</span></a></li><li><a class="tocitem" href="#Modified-King-fitting"><span>Modified King fitting</span></a></li><li><a class="tocitem" href="#Rational-polynomial-fitting"><span>Rational polynomial fitting</span></a></li></ul></li><li><a class="tocitem" href="../linsolve_choice/">Advanced usage</a></li><li><a class="tocitem" href="../stats/">StatsAPI interface usage</a></li></ul></li><li><span class="tocitem">Basics</span><ul><li><a class="tocitem" href="../../basics/overview/">Basic overview</a></li><li><a class="tocitem" href="../../basics/problems/">Problem types</a></li><li><a class="tocitem" href="../../basics/solvers/">Solvers</a></li><li><a class="tocitem" href="../../basics/solutions/">Solutions</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Getting started with CurveFit.jl</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Getting started with CurveFit.jl</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/SciML/CurveFit.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/SciML/CurveFit.jl/blob/master/docs/src/tutorials/getting_started.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-started-with-CurveFit.jl"><a class="docs-heading-anchor" href="#Getting-started-with-CurveFit.jl">Getting started with CurveFit.jl</a><a id="Getting-started-with-CurveFit.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-started-with-CurveFit.jl" title="Permalink"></a></h1><p>This tutorial introduces the basic workflow of CurveFit by walking through several simple examples. </p><h2 id="Linear-Fitting"><a class="docs-heading-anchor" href="#Linear-Fitting">Linear Fitting</a><a id="Linear-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Fitting" title="Permalink"></a></h2><p>Fit a linear function <code>y = a * x + b</code>:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = 2.5 * x + 3.0
+x = collect(0:0.1:10)
+y = @. 2.5 * x + 3.0
+
+# Create the problem and solve
+prob = CurveFitProblem(x, y)
+sol = solve(prob, LinearCurveFitAlgorithm())
+
+# Access the coefficients: sol.u = (a, b)
+println(&quot;Slope (a): &quot;, sol.u[1])
+println(&quot;Intercept (b): &quot;, sol.u[2])
+
+# Evaluate the solution at a point
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Slope (a): 2.500000000000001
+Intercept (b): 2.999999999999998
+Prediction at x=5: 15.500000000000002</code></pre><h2 id="Polynomial-Fitting"><a class="docs-heading-anchor" href="#Polynomial-Fitting">Polynomial Fitting</a><a id="Polynomial-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Polynomial-Fitting" title="Permalink"></a></h2><p>Fit a polynomial of a given degree:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = 1.0 + 2.0*x + 3.0*x^2
+x = collect(range(1, stop=10, length=20))
+y = @. 1.0 + 2.0 * x + 3.0 * x^2
+
+# Create the problem and solve with degree 2 polynomial
+prob = CurveFitProblem(x, y)
+sol = solve(prob, PolynomialFitAlgorithm(degree=2))
+
+# Access the coefficients: [c0, c1, c2] for c0 + c1*x + c2*x^2
+println(&quot;Coefficients: &quot;, sol.u)
+
+# Evaluate the solution at a point
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Coefficients: [1.0000000000000715, 1.999999999999975, 3.0000000000000018]
+Prediction at x=5: 85.99999999999999</code></pre><h2 id="Exponential-Fitting"><a class="docs-heading-anchor" href="#Exponential-Fitting">Exponential Fitting</a><a id="Exponential-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Exponential-Fitting" title="Permalink"></a></h2><p>Fit an exponential function <code>y = b * exp(a * x)</code>:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = 2.0 * exp(0.3 * x)
+x = collect(range(0, stop=5, length=20))
+y = @. 2.0 * exp(0.3 * x)
+
+prob = CurveFitProblem(x, y)
+sol = solve(prob, ExpCurveFitAlgorithm())
+
+# sol.u[1] = a (exponent coefficient)
+# sol.u[2] = log(b)
+println(&quot;Exponent coefficient (a): &quot;, sol.u[1])
+println(&quot;Scale factor (b): &quot;, exp(sol.u[2]))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Exponent coefficient (a): 0.2999999999999999
+Scale factor (b): 2.000000000000001</code></pre><h2 id="Power-Law-Fitting"><a class="docs-heading-anchor" href="#Power-Law-Fitting">Power Law Fitting</a><a id="Power-Law-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Power-Law-Fitting" title="Permalink"></a></h2><p>Fit a power law <code>y = b * x^a</code>:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = 2.0 * x^0.8
+x = collect(range(1, stop=10, length=20))
+y = @. 2.0 * x^0.8
+
+prob = CurveFitProblem(x, y)
+sol = solve(prob, PowerCurveFitAlgorithm())
+
+# sol.u[1] = a (exponent)
+# sol.u[2] = log(b)
+println(&quot;Exponent (a): &quot;, sol.u[1])
+println(&quot;Scale factor (b): &quot;, exp(sol.u[2]))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Exponent (a): 0.8000000000000014
+Scale factor (b): 1.999999999999995</code></pre><h2 id="Nonlinear-Curve-Fitting"><a class="docs-heading-anchor" href="#Nonlinear-Curve-Fitting">Nonlinear Curve Fitting</a><a id="Nonlinear-Curve-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Curve-Fitting" title="Permalink"></a></h2><p>For arbitrary nonlinear functions, use <code>NonlinearCurveFitProblem</code>:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Define a nonlinear function: y = a[1] + a[2] * x^a[3]
+fn(a, x) = @. a[1] + a[2] * x^a[3]
+
+# True parameters
+true_params = [3.0, 2.0, 0.7]
+
+# Generate sample data
+x = collect(1.0:0.5:10.0)
+y = fn(true_params, x)
+
+# Create problem with initial guess for parameters
+u0 = [0.5, 0.5, 0.5]
+prob = NonlinearCurveFitProblem(fn, u0, x, y)
+sol = solve(prob)
+
+println(&quot;Fitted parameters: &quot;, sol.u)
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [3.0, 2.0, 0.7]
+Prediction at x=5: 9.170338627200096</code></pre><h2 id="Sum-of-Exponentials"><a class="docs-heading-anchor" href="#Sum-of-Exponentials">Sum of Exponentials</a><a id="Sum-of-Exponentials-1"></a><a class="docs-heading-anchor-permalink" href="#Sum-of-Exponentials" title="Permalink"></a></h2><p>Fit a sum of exponentials: <code>y = k + p * exp(λ * t)</code>:</p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = 2.0 + 3.0*exp(-0.5*t)
+t = collect(range(0, stop=10, length=50))
+y = @. 2.0 + 3.0 * exp(-0.5 * t)
+
+prob = CurveFitProblem(t, y)
+sol = solve(prob, ExpSumFitAlgorithm(n=1, withconst=true))
+
+# Access fitted parameters (returned as arrays for n exponentials)
+# k[] extracts the scalar from a 1-element array
+println(&quot;Constant (k): &quot;, sol.u.k[])
+println(&quot;Amplitude (p): &quot;, sol.u.p[])
+println(&quot;Decay rate (λ): &quot;, sol.u.λ[])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constant (k): 1.9995923847296964
+Amplitude (p): 2.999598865560582
+Decay rate (λ): -0.499566604252092</code></pre><h2 id="Modified-King-fitting"><a class="docs-heading-anchor" href="#Modified-King-fitting">Modified King fitting</a><a id="Modified-King-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Modified-King-fitting" title="Permalink"></a></h2><p>Fit with the modified king law: <code>x^2 = a + b * y^n</code></p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate the data: x^2 = a + b * y^n
+x = collect(10.0:20.0)
+θ_ref = [5.0, 1.3, 2.5]
+y = @. ((x^2 - θ_ref[2])/θ_ref[3])^(1/θ_ref[1])
+
+# Works with and without an initial guess
+prob = CurveFitProblem(x, y)
+sol = solve(prob, ModifiedKingCurveFitAlgorithm())
+
+println(&quot;Fitted parameters: &quot;, sol.u)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [1.2999999999996883, 2.5000000000000173, 4.999999999999994]</code></pre><h2 id="Rational-polynomial-fitting"><a class="docs-heading-anchor" href="#Rational-polynomial-fitting">Rational polynomial fitting</a><a id="Rational-polynomial-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Rational-polynomial-fitting" title="Permalink"></a></h2><p>Fit a rational function: <code>y = p(x)/q(x)</code></p><pre><code class="language-julia hljs">using CurveFit
+
+# Generate sample data: y = (1 + 2*x) / (1 + 0.5*x - 0.1*x^2)
+x = collect(range(0, stop=5, length=30))
+y = @. (1.0 + 2.0*x) / (1.0 + 0.5*x - 0.1*x^2)
+
+# Create the problem and solve with numerator degree 1, denominator degree 2
+prob = CurveFitProblem(x, y)
+alg = RationalPolynomialFitAlgorithm(num_degree=1, den_degree=2)
+sol = solve(prob, alg)
+
+# Access fitted coefficients
+# Numerator: p0 + p1*x
+println(&quot;Numerator coefficients: &quot;, sol.u[1:2])
+# Denominator: 1 + q1*x + q2*x^2
+println(&quot;Denominator coefficients: &quot;, vcat(1.0, sol.u[3:4]))
+
+# Evaluate the solution at a point
+println(&quot;Prediction at x=2: &quot;, sol(2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Numerator coefficients: [1.0, 2.0000000000000004]
+Denominator coefficients: [1.0, 0.5000000000000001, -0.10000000000000002]
+Prediction at x=2: 3.1250000000000004</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../linsolve_choice/">Advanced usage »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Monday 5 January 2026 17:21">Monday 5 January 2026</span>. Using Julia version 1.12.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
