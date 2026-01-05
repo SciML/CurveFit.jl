@@ -21,9 +21,6 @@ function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     return resid
 end
 
-#Matrix decomposition choices for LevenbergMarquardt
-LM_linsolve(lin_solve = nothing; kwargs...) = NonlinearSolve.LevenbergMarquardt(linsolve = lin_solve; kwargs...)
-
 # NLLS Solvers
 @concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem

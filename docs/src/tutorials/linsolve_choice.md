@@ -3,9 +3,9 @@
 This tutorial covers advanced options for improving curve fitting performance
 by controlling the linear solvers used internally by nonlinear algorithms.
 It is intended for users who want more control over numerical stability,
-performance, or problem structure. CurveFit provides the user with the
+performance, or problem structure. NonlinearSolve.jl provides the user with the
 option to choose the linear solver they want for the Levenber-Marquardt
-algorithm from NonlinearSolve.jl.
+algorithm.
 
 ## Why does linear solver choice matter
 
@@ -14,7 +14,7 @@ systems involving the Jacobian matrix. At each iteration, systems of
 the form:
 
 ```math
-    (J^T \cdot J + \lamda I)\delta = J^T \cdot r
+    (J^T \cdot J + \lamda \cdot I)\delta = J^T \cdot r
 ```
 
 must be solved. `J` is the Jacobian matrix and `r` the residual
@@ -25,12 +25,11 @@ and conditioning of the Jacobian. While NonlinearSolve.jl selects a reasonable
 default, explicitly choosing a linear solver can significantly improve robustness 
 or performance in some cases.
 
-CurveFit provides the `LM_linsolve` constructor to allow the user to
-choose the linear solver used inside the Levenberg–Marquardt algorithm.
-It takes one argument, the linear solver of users choice. By default the
-argument is set to nothing and if the user does not provide their linear
-solver choice NonlinearSolve.jl will do it for them. All keyword arguments
-are fowarded to the underlying `LevenbergMarquardt` constructor.  
+Inside the `LevenbergMarquardt` constructor the keyword argument `linsolve` specifies
+the linear solver used in the algorithm. By default it is set to nothing and in that 
+case NonlinearSolve.jl will choose a linear solver on its own. Users can pass their
+desired linear solver to the constructor in which case that will be the one used.
+Below is a simple example of how to pass a specific linear solver.    
 
 ## Example
 
@@ -47,7 +46,7 @@ end
 Y = f(θ_true, X)
 
 nonf = NonlinearFunction(f)
-alg = LM_linsolve(QRFactorization())
+alg = LevenbergMarquardt(linsolve = QRFactorization())
  
 prob = NonlinearCurveFitProblem(nonf, [2.1, 3.3, 0.1], X, Y)
 sol = solve(prob, alg)
