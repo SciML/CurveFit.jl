@@ -1,4 +1,4 @@
-@testitem "LM_linsolve testing" begin
+@testitem "Linear solver choice testing" begin
     @testset "LUFactorization" begin
         using CurveFit
         using NonlinearSolve
@@ -12,7 +12,7 @@
         Y = f(θ_true, X)
 
         nonf = NonlinearFunction(f)
-        alg = LM_linsolve(LUFactorization())
+        alg = LevenbergMarquardt(linsolve = LUFactorization())
 
         prob = NonlinearCurveFitProblem(nonf, [0.5, 0.1], X, Y)
         sol = solve(prob, alg)
@@ -34,7 +34,7 @@
         Y = f(θ_true, X)
 
         nonf = NonlinearFunction(f)
-        alg = LM_linsolve(QRFactorization())
+        alg = LevenbergMarquardt(linsolve = QRFactorization())
 
         prob = NonlinearCurveFitProblem(nonf, [0.5, 0.1], X, Y)
         sol = solve(prob, alg)
@@ -56,7 +56,7 @@
         Y = f(θ_true, X)
 
         nonf = NonlinearFunction(f)
-        alg = LM_linsolve(CholeskyFactorization())
+        alg = LevenbergMarquardt(linsolve = CholeskyFactorization())
 
         prob = NonlinearCurveFitProblem(nonf, [0.5, 0.1], X, Y)
         sol = solve(prob, alg)
