@@ -242,7 +242,7 @@ end
     prob = NonlinearCurveFitProblem(ScalarModel(model), [1.0, 0.1], x, y)
     sol = solve(prob)
 
-    @test sol.u ≈ true_params atol = 1e-6
+    @test sol.u ≈ true_params atol = 1.0e-6
     @test SciMLBase.successful_retcode(sol.retcode)
 
     # Verify predictions
@@ -262,7 +262,7 @@ end
     prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), [0.5], x, y)
     sol = solve(prob)
 
-    @test sol.u[1] ≈ a0[1] atol = 1e-6
+    @test sol.u[1] ≈ a0[1] atol = 1.0e-6
     @test SciMLBase.successful_retcode(sol.retcode)
 end
 
