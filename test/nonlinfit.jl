@@ -170,3 +170,131 @@ end
     @test SciMLBase.successful_retcode(sol.retcode)
     @test !isnan(sol.u[1])
 end
+
+# Tests for ScalarModel - Issue #46
+@testitem "ScalarModel: Basic polynomial fitting" begin
+    using SciMLBase
+
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 1.0]
+
+    # Scalar function (no @.)
+    fn_scalar(a, x) = a[1] + a[2] * x + a[3] * x^2
+
+    # Generate y data by broadcasting the scalar function
+    y = fn_scalar.(Ref(a0), x)
+
+    # Use ScalarModel wrapper
+    prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), [0.5, 0.5, 0.5], x, y)
+    sol = solve(prob)
+
+    @test sol.u ≈ a0
+    @test SciMLBase.successful_retcode(sol.retcode)
+
+    # Test single-point evaluation
+    @testset for val in (0.0, 1.5, 4.5, 10.0)
+        @test sol(val) ≈ fn_scalar(a0, val)
+    end
+end
+
+@testitem "ScalarModel: Nonlinear power function" begin
+    using SciMLBase
+
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 0.7]
+
+    # Scalar function (no @.)
+    fn_scalar(a, x) = a[1] + a[2] * x^a[3]
+
+    # Generate y data
+    y = fn_scalar.(Ref(a0), x)
+
+    # Use ScalarModel wrapper
+    prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), [0.5, 0.5, 0.5], x, y)
+    sol = solve(prob)
+
+    @test sol.u ≈ a0
+    @test SciMLBase.successful_retcode(sol.retcode)
+
+    # Test single-point evaluation
+    @testset for val in (0.0, 1.5, 4.5, 10.0)
+        @test sol(val) ≈ fn_scalar(a0, val)
+    end
+end
+
+@testitem "ScalarModel: Exponential decay (LsqFit-style migration)" begin
+    using SciMLBase
+
+    # This test demonstrates migration from LsqFit.jl style
+    # LsqFit: model(x, p) = p[1] * exp(-x * p[2])
+    # CurveFit: model(p, x) = p[1] * exp(-x * p[2])
+
+    x = collect(range(0, stop = 10, length = 20))
+    true_params = [2.5, 0.3]
+
+    # Scalar model function (parameter order: params first, then x)
+    model(p, x) = p[1] * exp(-x * p[2])
+
+    # Generate y data
+    y = model.(Ref(true_params), x)
+
+    # Use ScalarModel wrapper
+    prob = NonlinearCurveFitProblem(ScalarModel(model), [1.0, 0.1], x, y)
+    sol = solve(prob)
+
+    @test sol.u ≈ true_params atol = 1.0e-6
+    @test SciMLBase.successful_retcode(sol.retcode)
+
+    # Verify predictions
+    @test sol(5.0) ≈ model(true_params, 5.0)
+end
+
+@testitem "ScalarModel: Reciprocal function" begin
+    using SciMLBase
+
+    x = [1.0, 2.0, 3.0, 4.0, 5.0]
+    a0 = [2.0]
+
+    # Scalar function: y = a/x
+    fn_scalar(a, x) = a[1] / x
+    y = fn_scalar.(Ref(a0), x)
+
+    prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), [0.5], x, y)
+    sol = solve(prob)
+
+    @test sol.u[1] ≈ a0[1] atol = 1.0e-6
+    @test SciMLBase.successful_retcode(sol.retcode)
+end
+
+@testitem "ScalarModel: Equivalence with vectorized @. form" begin
+    using SciMLBase
+
+    # Verify that ScalarModel produces the same results as @. form
+
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 0.7]
+    u0 = [0.5, 0.5, 0.5]
+
+    # Vectorized form (standard CurveFit style)
+    fn_vec(a, x) = @. a[1] + a[2] * x^a[3]
+    y = fn_vec(a0, x)
+
+    prob_vec = NonlinearCurveFitProblem(fn_vec, u0, x, y)
+    sol_vec = solve(prob_vec)
+
+    # Scalar form with ScalarModel
+    fn_scalar(a, x) = a[1] + a[2] * x^a[3]
+
+    prob_scalar = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
+    sol_scalar = solve(prob_scalar)
+
+    # Both should give the same result
+    @test sol_vec.u ≈ sol_scalar.u
+    @test SciMLBase.successful_retcode(sol_vec.retcode)
+    @test SciMLBase.successful_retcode(sol_scalar.retcode)
+
+    # Both should evaluate the same at any point
+    @testset for val in (0.0, 1.5, 4.5, 10.0)
+        @test sol_vec(val) ≈ sol_scalar(val)
+    end
+end

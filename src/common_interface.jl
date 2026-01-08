@@ -73,6 +73,31 @@ following optimization problem is solved:
 
 If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
 ideally a `NonlinearFunction` from [`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
+
+## Function Signature
+
+The model function `f` should have the signature `f(params, x)` where:
+- `params` is a vector of parameters to be fitted
+- `x` is the input data (can be a vector or matrix)
+
+The function should return predictions for all input data points. For vectorized operations
+over arrays, use Julia's broadcasting syntax with the `@.` macro:
+
+```julia
+# Vectorized function using @.
+fn(a, x) = @. a[1] + a[2] * x^a[3]
+```
+
+For users who prefer to define scalar functions (e.g., those migrating from LsqFit.jl),
+use the [`ScalarModel`](@ref) wrapper:
+
+```julia
+# Scalar function (operates on single x value)
+fn_scalar(a, x) = a[1] + a[2] * x^a[3]
+prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
+```
+
+See also [`ScalarModel`](@ref).
 """
 function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing)
     return CurveFitProblem(x, y; nlfunc = f, u0 = u0)
@@ -80,6 +105,64 @@ end
 function NonlinearCurveFitProblem(f::F, u0, x, y = nothing) where {F}
     return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y)
 end
+
+@doc doc"""
+    ScalarModel(f)
+
+Wraps a scalar function `f(params, x_i)` that operates on a single data point `x_i`
+into a vectorized form suitable for CurveFit.jl.
+
+This is useful for users migrating from LsqFit.jl or those who prefer defining
+scalar model functions without explicit broadcasting via the `@.` macro.
+
+## Why is `@.` Typically Required?
+
+In CurveFit.jl, model functions receive the entire data array `x` at once and must
+return predictions for all data points. This vectorized design enables:
+- Better GPU performance when using GPU arrays
+- More efficient compilation with tools like Reactant.jl
+- User control over array types
+
+## Using ScalarModel
+
+Instead of writing a vectorized function:
+```julia
+# Vectorized function (uses @.)
+fn(a, x) = @. a[1] + a[2] * x^a[3]
+prob = NonlinearCurveFitProblem(fn, u0, x, y)
+```
+
+You can write a simpler scalar function:
+```julia
+# Scalar function (no @. needed)
+fn_scalar(a, x) = a[1] + a[2] * x^a[3]
+prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
+```
+
+## Migration from LsqFit.jl
+
+For users coming from LsqFit.jl, note that the parameter order is reversed:
+- LsqFit.jl: `model(x, p)` (data first, then parameters)
+- CurveFit.jl: `model(p, x)` (parameters first, then data)
+
+Example migration:
+```julia
+# LsqFit.jl style (does NOT work directly)
+lsqfit_model(x, p) = p[1] * exp(-x * p[2])
+
+# CurveFit.jl with ScalarModel
+curvefit_model(p, x) = p[1] * exp(-x * p[2])
+prob = NonlinearCurveFitProblem(ScalarModel(curvefit_model), u0, x, y)
+```
+"""
+struct ScalarModel{F}
+    f::F
+end
+
+# When called with array data, broadcast over the data
+(sm::ScalarModel)(params, x::AbstractArray) = sm.f.(Ref(params), x)
+# When called with scalar data (for single-point evaluation), call directly
+(sm::ScalarModel)(params, x::Number) = sm.f(params, x)
 
 # Algorithms
 @concrete struct LinearCurveFitAlgorithm <: AbstractCurveFitAlgorithm

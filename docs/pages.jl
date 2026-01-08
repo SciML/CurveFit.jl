@@ -12,4 +12,3 @@ pages = [
         "basics/solutions.md",
     ],
 ]
-
