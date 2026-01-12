@@ -114,6 +114,64 @@ println("Fitted parameters: ", sol.u)
 println("Prediction at x=5: ", sol(5.0))
 ```
 
+### Using ScalarModel for Scalar Functions
+
+The `@.` macro in the example above broadcasts the function over all data points.
+If you prefer to define a simpler scalar function that operates on one data point
+at a time, use `ScalarModel`:
+
+```@example scalar_model
+using CurveFit
+
+# Define a scalar function (no @. needed): y = a[1] + a[2] * x^a[3]
+fn_scalar(a, x) = a[1] + a[2] * x^a[3]
+
+# True parameters
+true_params = [3.0, 2.0, 0.7]
+
+# Generate sample data
+x = collect(1.0:0.5:10.0)
+y = fn_scalar.(Ref(true_params), x)  # Note: we still need to broadcast for data generation
+
+# Create problem with ScalarModel wrapper
+u0 = [0.5, 0.5, 0.5]
+prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
+sol = solve(prob)
+
+println("Fitted parameters: ", sol.u)
+println("Prediction at x=5: ", sol(5.0))
+```
+
+### Migration from LsqFit.jl
+
+If you're migrating from LsqFit.jl, note these key differences:
+
+1. **Parameter order is reversed**: LsqFit uses `model(x, p)`, CurveFit uses `model(p, x)`
+2. **Vectorized functions**: CurveFit expects functions that operate on array data
+
+Using `ScalarModel` makes migration easier:
+
+```@example migration
+using CurveFit
+
+# LsqFit-style scalar model (with parameter order adjusted)
+# Original LsqFit: model(x, p) = p[1] * exp(-x * p[2])
+# CurveFit style:  model(p, x) = p[1] * exp(-x * p[2])
+model(p, x) = p[1] * exp(-x * p[2])
+
+# Generate sample data
+x = range(0, stop=10, length=20) |> collect
+true_params = [1.0, 0.2]
+y = model.(Ref(true_params), x)
+
+# Use ScalarModel to avoid writing @. in the model
+u0 = [0.5, 0.1]
+prob = NonlinearCurveFitProblem(ScalarModel(model), u0, x, y)
+sol = solve(prob)
+
+println("Fitted parameters: ", sol.u)
+```
+
 ## Sum of Exponentials
 
 Fit a sum of exponentials: `y = k + p * exp(λ * t)`:
