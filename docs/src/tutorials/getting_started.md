@@ -172,11 +172,6 @@ sol = solve(prob)
 println("Fitted parameters: ", sol.u)
 ```
 
-!!! tip "Performance Note"
-    While `ScalarModel` is convenient, directly writing vectorized functions with `@.`
-    can be more efficient for GPU computations and compiler optimizations. For
-    performance-critical applications, consider using the vectorized form.
-
 ## Sum of Exponentials
 
 Fit a sum of exponentials: `y = k + p * exp(λ * t)`:
