@@ -397,6 +397,8 @@ function CurveFitSolution(alg, coeffs, resid, prob, retcode)
     return CurveFitSolution(alg, coeffs, resid, prob, retcode, nothing)
 end
 
+SciMLBase.successful_retcode(sol::CurveFitSolution) = SciMLBase.successful_retcode(sol.retcode)
+
 # Common Solve Interface
 """
     CommonSolve.init(prob::AbstractCurveFitProblem, alg; kwargs...)
