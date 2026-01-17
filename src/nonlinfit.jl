@@ -32,22 +32,30 @@ end
 function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, kwargs...)
     if !isnothing(u0)
         kwargs = (; kwargs..., u0)
+        cache.prob.u0 = u0
     end
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
     if !isnothing(x)
         kwargs = (; kwargs..., p = x)
+        cache.prob.x = x
     end
 
     # Update `y` inplace, which is stored in NonlinearFunctionWrapper.target
+    y_len = length(y)
     if !isnothing(y)
+        nlfunc = cache.cache.prob.f
         wrapper = cache.cache.prob.f.f
+        if length(wrapper.target) != y_len
+            resize!(wrapper.target, y_len)
+            resize!(nlfunc.resid_prototype, y_len)
+        end
+
         copyto!(wrapper.target, y)
+        cache.prob.y = y
     end
 
-    if !isempty(kwargs)
-        reinit!(cache.cache; kwargs...)
-    end
+    reinit!(cache.cache; kwargs...)
 
     return cache
 end
