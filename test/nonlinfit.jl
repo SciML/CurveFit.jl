@@ -88,6 +88,30 @@ end
     end
 end
 
+@testitem "Nonlinear Least Squares: reinit!()" begin
+    using CurveFit
+    using SciMLBase
+
+    # Create an initial problem with a cache
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 0.7]
+
+    fn(a, x) = @. a[1] + a[2] * x^a[3]
+    y = fn(a0, x)
+
+    prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y)
+    cache = CurveFit.init(prob)
+    @test solve!(cache).u ≈ a0 atol = 1.0e-7
+
+    # reinit!() the cache with different parameters and recheck the solve
+    a0 = [4.0, 5.0, 0.2]
+    x = 11.0:20.0
+    y = fn(a0, x)
+
+    CurveFit.reinit!(cache; u0 = [1.0, 1.0, 1.0], x, y)
+    @test solve!(cache).u ≈ a0 atol = 1.0e-7
+end
+
 @testitem "Gauss-Newton curve fitting: Linear problem" begin
     using SciMLBase
 

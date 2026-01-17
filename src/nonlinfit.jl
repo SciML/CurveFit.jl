@@ -29,9 +29,24 @@ end
     kwargs
 end
 
-function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache, u0; kwargs...)
-    SciMLBase.reinit!(cache.cache, u0; kwargs...)
-    # TODO: reinit the problem as well?? doesn't matter for now
+function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, kwargs...)
+    if !isnothing(u0)
+        kwargs = (; kwargs..., u0)
+    end
+
+    # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
+    if !isnothing(x)
+        kwargs = (; kwargs..., p = x)
+    end
+
+    # Update `y` inplace
+    wrapper = cache.cache.prob.f.f
+    if !isnothing(y)
+        copyto!(wrapper.target, y)
+    end
+
+    reinit!(cache.cache; kwargs...)
+
     return cache
 end
 

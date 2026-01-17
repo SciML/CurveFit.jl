@@ -13,7 +13,7 @@ using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using NonlinearSolveBase: NonlinearSolveBase
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
-    NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
+    NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem, reinit!
 using DifferentiationInterface: DifferentiationInterface
 using ADTypes: AutoForwardDiff
 using Distributions: TDist, quantile
