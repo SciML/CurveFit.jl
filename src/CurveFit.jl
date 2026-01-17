@@ -12,7 +12,7 @@ using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
-    NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
+    NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem, reinit!
 using DifferentiationInterface: DifferentiationInterface
 using ADTypes: AutoForwardDiff
 using Distributions: TDist, quantile
