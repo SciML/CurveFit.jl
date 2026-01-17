@@ -11,6 +11,7 @@ using FastRationals: FastRational
 using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
 using LinearSolve: LinearSolve
 using NonlinearSolve: NonlinearSolve
+using NonlinearSolveBase: NonlinearSolveBase
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
     NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem
 using DifferentiationInterface: DifferentiationInterface

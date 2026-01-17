@@ -64,3 +64,53 @@ end
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
     return sol.prob.nlfunc(sol.u, x)
 end
+
+function Base.show(io::IO, ::MIME"text/plain", cache::GenericNonlinearCurveFitCache)
+    inner = cache.cache
+
+    # Get the actual working cache
+    is_polyalg = inner isa NonlinearSolveBase.NonlinearSolvePolyAlgorithmCache
+    current_cache = if is_polyalg
+        inner.caches[inner.current]
+    else
+        inner
+    end
+
+
+    context = (:compact => true, :limit => true)
+
+    println(io, "GenericNonlinearCurveFitCache(")
+
+    algstr = if !isnothing(current_cache.alg)
+        NonlinearSolveBase.Utils.clean_sprint_struct(current_cache.alg, 4)
+    else
+        "nothing"
+    end
+    print(io, "    alg = ")
+    if is_polyalg
+        print(io, "[NonlinearSolvePolyAlgorithm] ")
+    end
+    println(io, algstr, ",")
+
+    # Current parameter values
+    ustr = sprint(show, current_cache.u; context)
+    println(io, "    u = ", ustr, ",")
+
+    # Residual
+    resids = NonlinearSolveBase.get_fu(current_cache)
+    residstr = sprint(show, resids; context)
+    println(io, "    residual = ", residstr, ",")
+
+    # Inf-norm of residual
+    normval = LinearAlgebra.norm(resids, Inf)
+    normstr = sprint(show, normval; context)
+    println(io, "    inf-norm(residual) = ", normstr, ",")
+
+    # Number of steps
+    println(io, "    nsteps = ", inner.stats.nsteps, ",")
+
+    # Return code
+    println(io, "    retcode = ", current_cache.retcode)
+    print(io, ")")
+    return nothing
+end

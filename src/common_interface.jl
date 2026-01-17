@@ -26,6 +26,9 @@ abstract type AbstractCurveFitSolution end
 
 abstract type AbstractCurveFitCache end
 
+# TODO: print more information about the cache
+Base.show(io::IO, ::MIME"text/plain", x::T) where {T <: AbstractCurveFitCache} = print(io, nameof(T), "()")
+
 # Core Problem Types
 @doc doc"""
     CurveFitProblem(x, y; nlfunc=nothing, u0=nothing)
@@ -395,6 +398,22 @@ end
 
 function CurveFitSolution(alg, coeffs, resid, prob, retcode)
     return CurveFitSolution(alg, coeffs, resid, prob, retcode, nothing)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", sol::CurveFitSolution)
+    alg = @something(sol.alg, sol.original.alg) |> typeof |> nameof
+
+    println(io, "retcode: ", sol.retcode)
+    if is_nonlinear_problem(sol.prob)
+        println(io, "f: ", sol.prob.nlfunc.f)
+    end
+    println(io, "alg: $(alg)")
+
+    mean_resid = sum(sol.resid) / length(sol.resid)
+    println(io, "residuals mean: ", mean_resid)
+    print(io, "u: $(sol.u)")
+
+    return nothing
 end
 
 SciMLBase.successful_retcode(sol::CurveFitSolution) = SciMLBase.successful_retcode(sol.retcode)
