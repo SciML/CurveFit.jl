@@ -22,7 +22,7 @@ function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
 end
 
 # NLLS Solvers
-@concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
+@concrete mutable struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     cache
     alg
@@ -32,13 +32,13 @@ end
 function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, kwargs...)
     if !isnothing(u0)
         kwargs = (; kwargs..., u0)
-        cache.prob.u0 = u0
+        @set! cache.prob.u0 = u0
     end
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
     if !isnothing(x)
         kwargs = (; kwargs..., p = x)
-        cache.prob.x = x
+        @set! cache.prob.x = x
     end
 
     # Update `y` inplace, which is stored in NonlinearFunctionWrapper.target
@@ -52,7 +52,7 @@ function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x
         end
 
         copyto!(wrapper.target, y)
-        cache.prob.y = y
+        @set! cache.prob.y = y
     end
 
     reinit!(cache.cache; kwargs...)

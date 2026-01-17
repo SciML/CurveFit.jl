@@ -40,7 +40,7 @@ specific solver documentation for more details.
 
 See also [`NonlinearCurveFitProblem`](@ref).
 """
-@concrete mutable struct CurveFitProblem <: AbstractCurveFitProblem
+@concrete struct CurveFitProblem <: AbstractCurveFitProblem
     x <: AbstractArray
     y <: Union{AbstractArray, Nothing}
     nlfunc <: Union{Nothing, NonlinearFunction}
