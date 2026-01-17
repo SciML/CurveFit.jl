@@ -26,6 +26,9 @@ abstract type AbstractCurveFitSolution end
 
 abstract type AbstractCurveFitCache end
 
+# TODO: print more information about the cache
+Base.show(io::IO, x::T) where {T <: AbstractCurveFitCache} = print(io, nameof(T), "()")
+
 # Core Problem Types
 @doc doc"""
     CurveFitProblem(x, y; nlfunc=nothing, u0=nothing)
