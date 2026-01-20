@@ -43,6 +43,7 @@ See also [`NonlinearCurveFitProblem`](@ref).
 @concrete struct CurveFitProblem <: AbstractCurveFitProblem
     x <: AbstractArray
     y <: Union{AbstractArray, Nothing}
+    sigma <: Union{AbstractArray, Nothing}
     nlfunc <: Union{Nothing, NonlinearFunction}
     u0 <: Union{Nothing, AbstractArray}
 end
@@ -54,13 +55,13 @@ end
 
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
-function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing)
+function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing, sigma = nothing)
     if nlfunc === nothing
         @assert ndims(x) == ndims(y) == 1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
     end
 
-    return CurveFitProblem(x, y, nlfunc, u0)
+    return CurveFitProblem(x, y, sigma, nlfunc, u0)
 end
 
 @doc doc"""
@@ -102,11 +103,11 @@ prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
 
 See also [`ScalarModel`](@ref).
 """
-function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing)
-    return CurveFitProblem(x, y; nlfunc = f, u0 = u0)
+function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing, sigma = nothing)
+    return CurveFitProblem(x, y; nlfunc = f, u0 = u0, sigma)
 end
-function NonlinearCurveFitProblem(f::F, u0, x, y = nothing) where {F}
-    return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y)
+function NonlinearCurveFitProblem(f::F, u0, x, y = nothing, sigma = nothing) where {F}
+    return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y, sigma)
 end
 
 @doc doc"""

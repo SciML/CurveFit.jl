@@ -1,23 +1,40 @@
 @concrete struct NonlinearFunctionWrapper{iip}
     target
+    sigma
     f
 end
 
 SciMLBase.isinplace(::NonlinearFunctionWrapper{iip}) where {iip} = iip
 
-__wrap_nonlinear_function(f::NonlinearFunction, ::Nothing) = f
-function __wrap_nonlinear_function(f::NonlinearFunction, target)
-    internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, f.f)
+# If `target` is nothing then we can completely ignore sigma
+__wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, _) = f
+function __wrap_nonlinear_function(f::NonlinearFunction, target, sigma)
+    internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, sigma, f.f)
     @set! f.f = internal_f
     @set! f.resid_prototype = similar(target)
     return f
 end
 
-(nlf::NonlinearFunctionWrapper{false})(p, X) = nlf.f(p, X) .- nlf.target
+# Out-of-place
+function (nlf::NonlinearFunctionWrapper{false})(p, X)
+    resid = nlf.f(p, X) .- nlf.target
 
+    if !isnothing(nlf.sigma)
+        resid ./= nlf.sigma
+    end
+
+    return resid
+end
+
+# In-place
 function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     nlf.f(resid, p, X)
     resid .-= nlf.target
+
+    if !isnothing(nlf.sigma)
+        resid ./= nlf.sigma
+    end
+
     return resid
 end
 
@@ -29,7 +46,7 @@ end
     kwargs
 end
 
-function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, kwargs...)
+function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, sigma = nothing, kwargs...)
     if !isnothing(u0)
         kwargs = (; kwargs..., u0)
     end
@@ -43,6 +60,11 @@ function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x
     wrapper = cache.cache.prob.f.f
     if !isnothing(y)
         copyto!(wrapper.target, y)
+    end
+
+    # Update `sigma` inplace
+    if !isnothing(sigma)
+        copyto!(wrapper.sigma, sigma)
     end
 
     reinit!(cache.cache; kwargs...)
@@ -61,7 +83,7 @@ function CommonSolve.init(
         prob,
         init(
             NonlinearLeastSquaresProblem(
-                __wrap_nonlinear_function(prob.nlfunc, prob.y), prob.u0, prob.x
+                __wrap_nonlinear_function(prob.nlfunc, prob.y, prob.sigma), prob.u0, prob.x
             ),
             alg.alg;
             kwargs...
