@@ -55,6 +55,11 @@ end
 
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
+function sigma_not_supported(prob::CurveFitProblem)
+    @assert isnothing(prob.sigma) "Passing weights (sigma) is only supported for nonlinear and linear fits"
+    return
+end
+
 function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing, sigma = nothing)
     if nlfunc === nothing
         @assert ndims(x) == ndims(y) == 1 "x and y must be 1-dimensional arrays for linear \

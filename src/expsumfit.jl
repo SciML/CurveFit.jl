@@ -151,6 +151,7 @@ function CommonSolve.init(
     )
     @assert !is_nonlinear_problem(prob) "Exponential sum fitting only works with linear \
                                          problems"
+    sigma_not_supported(prob)
 
     T = eltype(prob.x)
 

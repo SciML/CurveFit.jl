@@ -19,6 +19,7 @@ function CommonSolve.init(
     )
     @assert !is_nonlinear_problem(prob) "Modified King's law fitting doesn't work with \
                                          nlfunc specification."
+    sigma_not_supported(prob)
 
     initial_guess_cache = if prob.u0 !== nothing
         nothing

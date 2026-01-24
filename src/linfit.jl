@@ -1,22 +1,25 @@
 function __linear_fit_internal(
-        fnx::F1, x::AbstractArray{T1}, fny::F2, y::AbstractArray{T2}
+        fnx::F1, x::AbstractArray{T1}, fny::F2, y::AbstractArray{T2}, sigma::Union{AbstractArray, Nothing}
     ) where {F1, F2, T1, T2}
     T = promote_type(T1, T2)
-    m = length(x)
 
-    sx2, sy2, sxy, sx, sy = zero(T), zero(T), zero(T), zero(T), zero(T)
+    sw, sx2, sxy, sx, sy = zero(T), zero(T), zero(T), zero(T), zero(T)
     @simd ivdep for i in eachindex(x, y)
         fn_xi = fnx(x[i])
         fn_yi = fny(y[i])
-        sx += fn_xi
-        sy += fn_yi
-        sx2 = muladd(fn_xi, fn_xi, sx2)
-        sy2 = muladd(fn_yi, fn_yi, sy2)
-        sxy = muladd(fn_xi, fn_yi, sxy)
+
+        w = isnothing(sigma) ? one(T) : inv(sigma[i]^2)
+        sw += w
+
+        sx += w * fn_xi
+        sy += w * fn_yi
+        sx2 = muladd(w * fn_xi, fn_xi, sx2)
+        sxy = muladd(w * fn_xi, fn_yi, sxy)
     end
 
-    a0 = (sx2 * sy - sxy * sx) / (m * sx2 - sx * sx)
-    a1 = (m * sxy - sx * sy) / (m * sx2 - sx * sx)
+    det = (sw * sx2 - sx * sx)
+    a0 = (sx2 * sy - sxy * sx) / det
+    a1 = (sw * sxy - sx * sy) / det
 
     return (a0, a1)
 end
@@ -49,7 +52,7 @@ end
 
 function CommonSolve.solve!(cache::GenericLinearFitCache)
     b, a = __linear_fit_internal(
-        cache.alg.xfun, cache.prob.x, cache.alg.yfun, cache.prob.y
+        cache.alg.xfun, cache.prob.x, cache.alg.yfun, cache.prob.y, cache.prob.sigma
     )
     y_pred = cache.alg.yfun_inverse.(b .+ a .* cache.alg.xfun.(cache.prob.x))
     resid = cache.prob.y .- y_pred
@@ -79,6 +82,7 @@ function CommonSolve.init(
                                          problems"
     @assert prob.u0 === nothing "Polynomial fit doesn't support initial guess \
                                (u0) specification"
+    sigma_not_supported(prob)
 
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
     linsolve_cache = init(
