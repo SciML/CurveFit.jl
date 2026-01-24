@@ -273,7 +273,7 @@ Return `true` if the underlying solver successfully converged.
 This is determined from the solver return code.
 """
 function isconverged(sol::CurveFitSolution)
-    return sol.retcode == ReturnCode.Success
+    return SciMLBase.successful_retcode(sol)
 end
 
 
