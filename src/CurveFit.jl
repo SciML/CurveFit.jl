@@ -17,8 +17,8 @@ using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm,
 using DifferentiationInterface: DifferentiationInterface
 using ADTypes: AutoForwardDiff
 using Distributions: TDist, quantile
-import StatsAPI: coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, vcov, stderror,
-    confint
+using StatsAPI: StatsAPI, coef, residuals, predict, fitted, nobs, dof, dof_residual,
+    rss, vcov, stderror, confint
 
 # Abstract base class for fitting data
 abstract type AbstractApproxFit end

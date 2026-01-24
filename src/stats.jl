@@ -5,7 +5,7 @@ Return the fitted coefficients.
 
 The ordering of coefficients depends on the fitting algorithm used.
 """
-function coef(sol::CurveFitSolution)
+function StatsAPI.coef(sol::CurveFitSolution)
     return sol.u
 end
 
@@ -17,7 +17,7 @@ Return the residuals of the fitted model.
 Residuals are defined as the difference between the observed data and the model
 predictions evaluated at the fitted coefficients.
 """
-function residuals(sol::CurveFitSolution)
+function StatsAPI.residuals(sol::CurveFitSolution)
     return sol.resid
 end
 
@@ -29,7 +29,7 @@ Evaluate the fitted model with new data.
 If `x` is not provided, predictions are returned at the original data points
 used during fitting.
 """
-function predict(sol::CurveFitSolution, x = sol.prob.x)
+function StatsAPI.predict(sol::CurveFitSolution, x = sol.prob.x)
     return sol(x)
 end
 
@@ -38,7 +38,7 @@ end
 
 Return the fitted values at the original data points.
 """
-function fitted(sol::CurveFitSolution)
+function StatsAPI.fitted(sol::CurveFitSolution)
     return sol(sol.prob.x)
 end
 
@@ -47,7 +47,7 @@ end
 
 Return the number of observations used in the fit.
 """
-function nobs(sol::CurveFitSolution)
+function StatsAPI.nobs(sol::CurveFitSolution)
     return length(sol.prob.y)
 end
 
@@ -56,7 +56,7 @@ end
 
 Return the number of degrees of freedom of the model.
 """
-function dof(sol::CurveFitSolution)
+function StatsAPI.dof(sol::CurveFitSolution)
     return length(sol.u)
 end
 
@@ -67,7 +67,7 @@ Return the residual degrees of freedom.
 
 This is defined as `nobs(sol) - dof(sol)`.
 """
-function dof_residual(sol::CurveFitSolution)
+function StatsAPI.dof_residual(sol::CurveFitSolution)
     return nobs(sol) - dof(sol)
 end
 
@@ -78,7 +78,7 @@ Return the residual sum of squares (RSS).
 
 This is defined as `sum(abs2, residuals(sol))`.
 """
-function rss(sol::CurveFitSolution)
+function StatsAPI.rss(sol::CurveFitSolution)
     return sum(abs2, residuals(sol))
 end
 
@@ -286,7 +286,7 @@ The covariance matrix is computed using the Jacobian of the fitted model and a
 QR-based least squares formulation. This function is defined for solutions to
 both linear and nonlinear problems.
 """
-function vcov(sol::CurveFitSolution)
+function StatsAPI.vcov(sol::CurveFitSolution)
     J = jacobian(sol)
 
     # Compute the covariance matrix from the QR decomposition
@@ -314,7 +314,7 @@ Return the standard errors of the fitted coefficients.
 Standard errors are computed as the square roots of the diagonal elements of the
 variance–covariance matrix.
 """
-function stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real = 0)
+function StatsAPI.stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real = 0)
     covar = vcov(sol)
     vars = LinearAlgebra.diag(covar)
 
@@ -348,7 +348,7 @@ Return confidence intervals for the fitted parameters.
 
 The confidence intervals are returned as a vector of `(lower, upper)` tuples.
 """
-function confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
+function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
     margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
     return collect(zip(coef(sol) .- margin_of_errors, coef(sol) .+ margin_of_errors))
 end
