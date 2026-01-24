@@ -1,14 +1,13 @@
 pages = [
     "Home" => "index.md",
-    "Tutorials" => Any[
+    "Tutorials" => [
         "tutorials/getting_started.md",
         "tutorials/linsolve_choice.md",
         "tutorials/stats.md",
     ],
-    "Basics" => Any[
-        "basics/overview.md",
-        "basics/problems.md",
-        "basics/solvers.md",
-        "basics/solutions.md",
+    "API" => [
+        "api/problems.md",
+        "api/solvers.md",
+        "api/solutions.md",
     ],
 ]

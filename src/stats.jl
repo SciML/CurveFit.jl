@@ -1,4 +1,4 @@
-@doc doc"""
+"""
     coef(sol::CurveFitSolution)
 
 Return the fitted coefficients.
@@ -9,7 +9,7 @@ function StatsAPI.coef(sol::CurveFitSolution)
     return sol.u
 end
 
-@doc doc"""
+"""
     residuals(sol::CurveFitSolution)
 
 Return the residuals of the fitted model.
@@ -21,7 +21,7 @@ function StatsAPI.residuals(sol::CurveFitSolution)
     return sol.resid
 end
 
-@doc doc"""
+"""
     predict(sol::CurveFitSolution, x = sol.prob.x)
 
 Evaluate the fitted model with new data.
@@ -33,7 +33,7 @@ function StatsAPI.predict(sol::CurveFitSolution, x = sol.prob.x)
     return sol(x)
 end
 
-@doc doc"""
+"""
     fitted(sol::CurveFitSolution)
 
 Return the fitted values at the original data points.
@@ -42,7 +42,7 @@ function StatsAPI.fitted(sol::CurveFitSolution)
     return sol(sol.prob.x)
 end
 
-@doc doc"""
+"""
     nobs(sol::CurveFitSolution)
 
 Return the number of observations used in the fit.
@@ -51,7 +51,7 @@ function StatsAPI.nobs(sol::CurveFitSolution)
     return length(sol.prob.y)
 end
 
-@doc doc"""
+"""
     dof(sol::CurveFitSolution)
 
 Return the number of degrees of freedom of the model.
@@ -60,7 +60,7 @@ function StatsAPI.dof(sol::CurveFitSolution)
     return length(sol.u)
 end
 
-@doc doc"""
+"""
     dof_residual(sol::CurveFitSolution)
 
 Return the residual degrees of freedom.
@@ -71,7 +71,7 @@ function StatsAPI.dof_residual(sol::CurveFitSolution)
     return nobs(sol) - dof(sol)
 end
 
-@doc doc"""
+"""
     rss(sol::CurveFitSolution)
 
 Return the residual sum of squares (RSS).
@@ -82,10 +82,10 @@ function StatsAPI.rss(sol::CurveFitSolution)
     return sum(abs2, residuals(sol))
 end
 
-@doc doc"""
+"""
     mse(sol::CurveFitSolution)
 
-Return the mean squared error of the fit.
+Return the [mean squared error](https://en.wikipedia.org/wiki/Mean_squared_error) of the fit.
 
 The mean squared error is computed as `rss(sol) / dof_residual(sol)`.
 """
@@ -265,7 +265,7 @@ function jacobian(sol::CurveFitSolution)
     end
 end
 
-@doc doc"""
+"""
     isconverged(sol::CurveFitSolution)
 
 Return `true` if the underlying solver successfully converged.
@@ -277,7 +277,7 @@ function isconverged(sol::CurveFitSolution)
 end
 
 
-@doc doc"""
+"""
     vcov(sol::CurveFitSolution)
 
 Return the variance–covariance matrix of the fitted coefficients.
@@ -305,8 +305,7 @@ function StatsAPI.vcov(sol::CurveFitSolution)
     return covar
 end
 
-
-@doc doc"""
+"""
     stderror(sol::CurveFitSolution; rtol = NaN, atol = 0)
 
 Return the standard errors of the fitted coefficients.
@@ -332,7 +331,6 @@ function StatsAPI.stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real =
     return sqrt.(abs.(vars))
 end
 
-
 function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
     std_errors = stderror(sol; rtol = rtol, atol = atol)
     dist = TDist(dof(sol))
@@ -340,13 +338,19 @@ function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, ato
     return std_errors * critical_values
 end
 
-
-@doc doc"""
+"""
     confint(sol::CurveFitSolution; level = 0.95, rtol = NaN, atol = 0)
 
 Return confidence intervals for the fitted parameters.
 
 The confidence intervals are returned as a vector of `(lower, upper)` tuples.
+Confidence intervals are computed using the estimated standard error which
+is calculated as the square root of the diagonal entries of the covariance
+matrix. The default confidence level is 95% and the associated parameter α
+in that case is 0.05. Critical values of the normal distributions are
+calculated in correspondence with α. Upper and lower bounds of the confidence
+intervals are then calculated as the product of the standard errors and the
+critical values ± the fitted coefficient.
 """
 function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
     margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
