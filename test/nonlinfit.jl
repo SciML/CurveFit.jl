@@ -112,7 +112,7 @@ end
     @test solve!(cache).u ≈ a0 atol = 1.0e-7
 end
 
-@testitem "Weighted Least Squares: sigma" begin
+@testitem "Nonlinear Weighted Least Squares" begin
     using SciMLBase
 
     fn(a, x) = @. a[1] + a[2] * x

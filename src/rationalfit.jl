@@ -59,6 +59,7 @@ function CommonSolve.init(
     )
     @assert !is_nonlinear_problem(prob) "Rational polynomial fitting doesn't work with \
                                          nlfunc specification."
+    sigma_not_supported(prob)
 
     coeffs_length = alg.num_degree + alg.den_degree + 1
 
