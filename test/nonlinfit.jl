@@ -88,6 +88,59 @@ end
     end
 end
 
+@testitem "Nonlinear Least Squares: reinit!()" begin
+    using CurveFit
+    using SciMLBase
+
+    # Create an initial problem with a cache
+    x = 1.0:10.0
+    a0 = [3.0, 2.0, 0.7]
+
+    fn(a, x) = @. a[1] + a[2] * x^a[3]
+    y = fn(a0, x)
+
+    prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y)
+    cache = CurveFit.init(prob)
+    @test solve!(cache).u ≈ a0 atol = 1.0e-7
+
+    # reinit!() the cache with different parameters and recheck the solve
+    a0 = [4.0, 5.0, 0.2]
+    x = 11.0:20.0
+    y = fn(a0, x)
+
+    CurveFit.reinit!(cache; u0 = [1.0, 1.0, 1.0], x, y)
+    @test solve!(cache).u ≈ a0 atol = 1.0e-7
+end
+
+@testitem "Weighted Least Squares: sigma" begin
+    using SciMLBase
+
+    fn(a, x) = @. a[1] + a[2] * x
+    x = collect(1.0:10.0)
+    a0 = [1.0, 2.0]
+    y = fn(a0, x)
+
+    # Add a large outlier
+    y[5] += 20.0
+
+    # Fit without sigma - outlier should affect result
+    prob_no_weight = NonlinearCurveFitProblem(fn, [0.5, 0.5], x, y)
+    sol_no_weight = solve(prob_no_weight)
+
+    # Fit with a high sigma on the outlier
+    sigma = ones(length(y))
+    sigma[5] = 100.0
+    prob_weighted = NonlinearCurveFitProblem(fn, [0.5, 0.5], x, y, sigma)
+    sol_weighted = solve(prob_weighted)
+
+    # Weighted fit should (hopefully) be closer to the true parameters
+    err_no_weight = maximum(abs.(sol_no_weight.u .- a0))
+    err_weighted = maximum(abs.(sol_weighted.u .- a0))
+
+    @test err_weighted < err_no_weight
+    @test SciMLBase.successful_retcode(sol_weighted)
+end
+
 @testitem "Gauss-Newton curve fitting: Linear problem" begin
     using SciMLBase
 
