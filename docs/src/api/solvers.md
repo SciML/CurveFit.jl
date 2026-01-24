@@ -6,7 +6,7 @@ for selected nonstandard models.
 
 ## Linear fitting
 
-Linear curve fitting in CurveFit solves problems of the general form $ f_y(y) = a \cdot f_x(x) + b $
+Linear curve fitting in CurveFit solves problems of the general form ``f_y(y) = a \cdot f_x(x) + b``
 where `x` and `y` are the data points being fitted and `a` and `b` are the fit parameters.
 
 Linear fits do not require an initial guess. The user must explicitly select a linear
@@ -68,7 +68,7 @@ a coefficient and thus the problem becomes nonlinear. Since it is nonlinear solv
 done via NonlinearSolve.jl. This Modified King fit has a defined model and if the user tries 
 to solve a problem with a specified model function using this algorithm an error will be thrown.
 However, the user can pass an initial guess for the coefficients `a`, `b` and `n`. In case an
-initial guess is not provided CurveFit will obatin it internally by using the related linear
+initial guess is not provided CurveFit will obtain it internally by using the related linear
 King fit.
 
 ```@docs

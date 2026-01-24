@@ -1,4 +1,4 @@
-# Problem types
+# Problems
 
 CurveFit defines two primary problem types: `CurveFitProblem` and `NonlinearCurveFitProblem`. 
 These types encapsulate the data to be fitted, along with optional model definitions and
@@ -20,4 +20,12 @@ If the output data `y` is not provided, it is treated as a zero vector.
 ```@docs
 CurveFitProblem
 NonlinearCurveFitProblem
+```
+
+## Scalar models
+For convenience when creating a model CurveFit provides a helper `ScalarModel`
+type that allows defining scalar models.
+
+```@docs
+ScalarModel
 ```

@@ -1,9 +1,15 @@
 using Documenter
 using CurveFit
 using CommonSolve
-using NonlinearSolve
+using NonlinearSolve: NonlinearSolve
 
 include("pages.jl")
+
+# Revise if possible to pick up any docstring changes when running under
+# LiveServer.jl.
+if isdefined(Main, :Revise)
+    Revise.revise()
+end
 
 makedocs(;
     sitename = "CurveFit.jl",

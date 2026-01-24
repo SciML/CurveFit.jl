@@ -30,13 +30,18 @@ abstract type AbstractCurveFitCache end
 Base.show(io::IO, ::MIME"text/plain", x::T) where {T <: AbstractCurveFitCache} = print(io, nameof(T), "()")
 
 # Core Problem Types
-@doc doc"""
-    CurveFitProblem(x, y; nlfunc=nothing, u0=nothing)
+"""
+    CurveFitProblem(x, y; nlfunc=nothing, u0=nothing, sigma=nothing)
 
 Represents a curve fitting problem where `x` and `y` are the data points to fit.
 
 Certain algorithms may require an initial guess `u0` for the coefficients to fit. See
 specific solver documentation for more details.
+
+Weights can be passed through `sigma`, which should be an array with the same
+dimensions as `y`. As with `curve_fit()` from scipy, the elements should be the
+standard deviation of `y`. Note that currently `sigma` is only supported for
+linear and nonlinear fits.
 
 See also [`NonlinearCurveFitProblem`](@ref).
 """
@@ -70,7 +75,7 @@ function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing, sigma = nothing)
 end
 
 @doc doc"""
-    NonlinearCurveFitProblem(f, u0, x, y)
+    NonlinearCurveFitProblem(f, u0, x, y=nothing, sigma=nothing)
 
 Nonlinear curve fitting problem where `f` is a nonlinear function to fit, `u0` is the
 initial guess for the coefficients, and `x` and `y` are the data points to fit. The
@@ -115,7 +120,7 @@ function NonlinearCurveFitProblem(f::F, u0, x, y = nothing, sigma = nothing) whe
     return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y, sigma)
 end
 
-@doc doc"""
+"""
     ScalarModel(f)
 
 Wraps a scalar function `f(params, x_i)` that operates on a single data point `x_i`
@@ -286,7 +291,7 @@ where `n` is also a parameter.
     alg <: Union{Nothing, AbstractNonlinearAlgorithm} = nothing
 end
 
-@doc doc"""
+"""
     PolynomialFitAlgorithm(degree::Int)
     PolynomialFitAlgorithm(;
         degree::Int,

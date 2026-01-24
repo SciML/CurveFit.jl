@@ -1,6 +1,13 @@
 # CurveFit.jl
 
-Linear, special function, and nonlinear curve fitting in Julia.
+CurveFit provides a unified and extensible interface for linear, nonlinear, and
+specialized curve fitting in Julia. It offers built-in solvers for common linear
+and special-function models, while general nonlinear curve fitting is handled
+through nonlinear least squares methods from NonlinearSolve.jl.
+
+Curve fitting problems are defined in a consistent problem–solver style, allowing
+flexible solver selection and access to common statistical diagnostics such as
+residuals, standard errors, and confidence intervals via the StatsAPI.jl interface.
 
 ## Installation
 
@@ -30,7 +37,4 @@ println("Intercept (b): ", sol.u[2])
 println("Prediction at x=5: ", sol(5.0))
 ```
 
-## See next
-
-- [Basic overview](@ref) – Full documentation of problem types, algorithms, and usage details.  
-- [Getting started with CurveFit.jl](@ref) – Step-by-step examples to get started with common fits.  
+See [Getting started](@ref) for more step-by-step examples with common fits.
