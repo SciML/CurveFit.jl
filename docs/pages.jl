@@ -10,4 +10,5 @@ pages = [
         "api/solvers.md",
         "api/solutions.md",
     ],
+    "changelog.md",
 ]

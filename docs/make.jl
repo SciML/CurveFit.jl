@@ -1,3 +1,4 @@
+import Changelog
 using Documenter
 using CurveFit
 using CommonSolve
@@ -10,6 +11,15 @@ include("pages.jl")
 if isdefined(Main, :Revise)
     Revise.revise()
 end
+
+# Build the changelog. The actual contents are in `_changelog.md` and the built
+# file is in `changelog.md`.
+Changelog.generate(
+    Changelog.Documenter(),
+    joinpath(@__DIR__, "src/_changelog.md"),
+    joinpath(@__DIR__, "src/changelog.md"),
+    repo = "SciML/CurveFit.jl"
+)
 
 makedocs(;
     sitename = "CurveFit.jl",
