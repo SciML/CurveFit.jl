@@ -343,14 +343,10 @@ end
 
 Return confidence intervals for the fitted parameters.
 
-The confidence intervals are returned as a vector of `(lower, upper)` tuples.
-Confidence intervals are computed using the estimated standard error which
-is calculated as the square root of the diagonal entries of the covariance
-matrix. The default confidence level is 95% and the associated parameter α
-in that case is 0.05. Critical values of the normal distributions are
-calculated in correspondence with α. Upper and lower bounds of the confidence
-intervals are then calculated as the product of the standard errors and the
-critical values ± the fitted coefficient.
+Confidence intervals are computed using [`stderror()`](@ref) internally. The
+confidence intervals are returned as a vector of `(lower, upper)` tuples,
+computed as `coef(sol) ± stderror(sol) * t` where `t` is the critical value
+of the t-distribution for the given confidence `level`.
 """
 function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
     margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
