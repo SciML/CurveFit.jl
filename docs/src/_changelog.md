@@ -7,11 +7,15 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## Unreleased
+## [v1.4.0] - 2026-01-26
 
 ### Added
-- Added support for standard deviation weights for linear and nonlinear fits
-  ([#79], [#80]).
+- Added support for standard deviation weights for linear fits ([#80]).
+
+## [v1.3.0] - 2026-01-26
+
+### Added
+- Added support for standard deviation weights for nonlinear fits ([#79]).
 
 ### Changed
 - **Breaking**: `reinit!(::GenericNonlinearCurveFitCache)` now takes in `u0` as
