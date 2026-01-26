@@ -13,6 +13,10 @@
     @testset for val in range(minimum(E), stop = maximum(E), length = 10)
         @test sol(val) ≈ fn(val)
     end
+
+    # Sigma not supported
+    prob_sigma = CurveFitProblem(E, U; sigma = ones(length(U)))
+    @test_throws AssertionError solve(prob_sigma, KingCurveFitAlgorithm())
 end
 
 @testitem "Modified King's Law" begin

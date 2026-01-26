@@ -46,6 +46,8 @@ function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; k
                                          problems"
     @assert prob.u0 === nothing "Linear fit doesn't support initial guess (u0) \
                                specification"
+    @assert alg.yfun === identity || isnothing(prob.sigma) "Weights (sigma) are not \
+        supported when yfun ≠ identity (e.g., PowerCurveFitAlgorithm, ExpCurveFitAlgorithm)"
 
     return GenericLinearFitCache(prob, kwargs, alg)
 end
