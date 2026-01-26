@@ -1,4 +1,4 @@
-# Getting started
+# Getting started with CurveFit.jl
 
 This tutorial introduces the basic workflow of CurveFit by walking through
 several simple examples. 
