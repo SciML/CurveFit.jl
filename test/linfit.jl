@@ -47,6 +47,10 @@ end
     @testset for val in (0.0, 1.5, 4.5, 10.0)
         @test sol(val) ≈ fn(val)
     end
+
+    # Sigma not supported
+    prob_sigma = CurveFitProblem(x, y; sigma = ones(length(y)))
+    @test_throws AssertionError solve(prob_sigma, PowerCurveFitAlgorithm())
 end
 
 @testitem "Exp Fit" begin
@@ -64,6 +68,10 @@ end
     @testset for val in (0.0, 1.5, 4.5, 10.0)
         @test sol(val) ≈ fn(val)
     end
+
+    # Sigma not supported
+    prob_sigma = CurveFitProblem(x, y; sigma = ones(length(y)))
+    @test_throws AssertionError solve(prob_sigma, ExpCurveFitAlgorithm())
 end
 
 @testitem "Polynomial Fit" begin

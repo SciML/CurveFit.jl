@@ -40,8 +40,9 @@ specific solver documentation for more details.
 
 Weights can be passed through `sigma`, which should be an array with the same
 dimensions as `y`. As with `curve_fit()` from scipy, the elements should be the
-standard deviation of `y`. Note that currently `sigma` is only supported for
-linear and nonlinear fits.
+standard deviation of `y`. Note that currently `sigma` is not supported for all
+kinds of fits, check the problem or algorithm docstring to see if sigma is
+supported.
 
 See also [`NonlinearCurveFitProblem`](@ref).
 """
@@ -61,7 +62,7 @@ end
 is_nonlinear_problem(prob::CurveFitProblem) = prob.nlfunc !== nothing
 
 function sigma_not_supported(prob::CurveFitProblem)
-    @assert isnothing(prob.sigma) "Passing weights (sigma) is only supported for nonlinear and linear fits"
+    @assert isnothing(prob.sigma) "Passing weights (sigma) is not supported for this algorithm"
     return
 end
 
@@ -78,8 +79,9 @@ end
     NonlinearCurveFitProblem(f, u0, x, y=nothing, sigma=nothing)
 
 Nonlinear curve fitting problem where `f` is a nonlinear function to fit, `u0` is the
-initial guess for the coefficients, and `x` and `y` are the data points to fit. The
-following optimization problem is solved:
+initial guess for the coefficients, `x` and `y` are the data points to fit, and
+`sigma` is the standard deviation associated with `y`. The following
+optimization problem is solved:
 
 ```math
 \argmin_u ~ \left\| f(u, x) - y \right\|_2
@@ -190,7 +192,9 @@ end
         xfun = identity, yfun = identity, yfun_inverse = inverse(yfun)
     )
 
-Represents a linear curve fitting algorithm where `x` and `y` are the data points to fit.
+Represents a linear curve fitting algorithm where `x` and `y` are the data
+points to fit. If the [`CurveFitProblem`](@ref) being solved has a `sigma` then
+it will be used as weights.
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -212,7 +216,9 @@ end
 @doc doc"""
     LogCurveFitAlgorithm()
 
-Represents a log curve fitting algorithm where `x` and `y` are the data points to fit.
+Represents a log curve fitting algorithm where `x` and `y` are the data points
+to fit. If the [`CurveFitProblem`](@ref) being solved has a `sigma` then
+it will be used as weights.
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -224,7 +230,9 @@ LogCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = identity)
 @doc doc"""
     PowerCurveFitAlgorithm()
 
-Represents a power curve fitting algorithm where `x` and `y` are the data points to fit.
+Represents a power curve fitting algorithm where `x` and `y` are the data points
+to fit. This algorithm does not support passing weights through `sigma` in
+[`CurveFitProblem`](@ref).
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -243,7 +251,9 @@ PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
     ExpCurveFitAlgorithm()
 
 Represents an exponential curve fitting algorithm where `x` and `y` are the data points to
-fit. We want to solve for `a` and `b` such that:
+fit. This algorithm does not support passing weights through `sigma` in
+[`CurveFitProblem`](@ref).
+We want to solve for `a` and `b` such that:
 
 ```math
 y = b \exp(a x)
@@ -260,7 +270,9 @@ ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
 @doc doc"""
     KingCurveFitAlgorithm()
 
-Represents a king curve fitting problem where `x` and `y` are the data points to fit.
+Represents a king curve fitting problem where `x` and `y` are the data points to
+fit. This algorithm does not support passing weights through `sigma` in
+[`CurveFitProblem`](@ref).
 We want to solve for `a` and `b` according to original King's law (1910) that represents
 the relationship between voltage (E) and velocity (U) in a hotwire anemometer:
 
@@ -299,7 +311,8 @@ end
     )
 
 Represents a polynomial fitting algorithm of degree `degree`. Only applicable to
-[`LinearCurveFitAlgorithm`](@ref)s.
+[`LinearCurveFitAlgorithm`](@ref)s. This algorithm does not support passing
+weights through `sigma` in [`CurveFitProblem`](@ref).
 
 !!! tip
 
@@ -326,7 +339,8 @@ and denominator degree `den_degree`. The internal polynomial fitting algorithm i
 determined by the `alg` keyword argument. If `alg` is `nothing` or a
 `AbstractNonlinearAlgorithm` (like solvers from NonlinearSolve.jl), it will use a
 nonlinear curve fitting approach. If `alg` is a `AbstractLinearAlgorithm`, it will use
-linear least squares fitting.
+linear least squares fitting. This algorithm does not support passing weights
+through `sigma` in [`CurveFitProblem`](@ref).
 
 ## Linear Rational Polynomial Fitting
 
@@ -363,7 +377,8 @@ end
 @doc doc"""
     ExpSumFitAlgorithm(; n::Int, m::Int = 1, withconst::Bool = true)
 
-Fits the sum of `n` exponentials and a constant.
+Fits the sum of `n` exponentials and a constant. This algorithm does not support
+passing weights through `sigma` in [`CurveFitProblem`](@ref).
 
 ```math
 y = k + p_1 e^{λ_1 t} + p_2 e^{λ_2 t} + ⋯ + p_n e^{λ_n t}
