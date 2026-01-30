@@ -331,6 +331,13 @@ function StatsAPI.stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real =
     return sqrt.(abs.(vars))
 end
 
+"""
+    margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
+
+Returns the margin of error of the fitted coefficients, computed as
+`stderror(sol) * t` where `t` is the critical value of the t-distribution for `1
+- alpha / 2`.
+"""
 function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
     std_errors = stderror(sol; rtol = rtol, atol = atol)
     dist = TDist(dof(sol))
@@ -343,10 +350,8 @@ end
 
 Return confidence intervals for the fitted parameters.
 
-Confidence intervals are computed using [`stderror()`](@ref) internally. The
-confidence intervals are returned as a vector of `(lower, upper)` tuples,
-computed as `coef(sol) ± stderror(sol) * t` where `t` is the critical value
-of the t-distribution for the given confidence `level`.
+The confidence intervals are returned as a vector of `(lower, upper)` tuples,
+computed as `coef(sol) ± margin_error(sol)`.
 """
 function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
     margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)

@@ -7,9 +7,10 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v1.4.0] - 2026-01-26
+## [v1.4.0] - 2026-01-30
 
 ### Added
+- Implemented [`margin_error()`](@ref) ([#81]).
 - Added support for standard deviation weights for linear fits ([#80]).
 
 ## [v1.3.0] - 2026-01-26
