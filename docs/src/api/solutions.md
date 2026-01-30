@@ -28,5 +28,6 @@ rss
 isconverged
 vcov
 stderror
+margin_error
 confint
 ```
