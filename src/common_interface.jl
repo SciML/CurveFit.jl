@@ -176,6 +176,7 @@ struct ScalarModel{F}
 end
 
 # When called with array data, broadcast over the data
+(sm::ScalarModel)(out, params, x::AbstractArray) = out .= sm.f.(Ref(params), x)
 (sm::ScalarModel)(params, x::AbstractArray) = sm.f.(Ref(params), x)
 # When called with scalar data (for single-point evaluation), call directly
 (sm::ScalarModel)(params, x::Number) = sm.f(params, x)
