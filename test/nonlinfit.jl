@@ -239,7 +239,9 @@ end
 
     # Use ScalarModel wrapper
     prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), [0.5, 0.5, 0.5], x, y)
+    @test SciMLBase.isinplace(prob.nlfunc)
     sol = solve(prob)
+    @test sol(x) isa Vector
 
     @test sol.u ≈ a0
     @test SciMLBase.successful_retcode(sol.retcode)
