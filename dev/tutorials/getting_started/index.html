@@ -34,7 +34,7 @@ prob = NonlinearCurveFitProblem(fn, u0, x, y)
 sol = solve(prob)
 
 println(&quot;Fitted parameters: &quot;, sol.u)
-println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [3.0, 2.0, 0.7]
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [2.9999999999999996, 2.0000000000000004, 0.6999999999999998]
 Prediction at x=5: 9.170338627200096</code></pre><h3 id="Using-ScalarModel-for-Scalar-Functions"><a class="docs-heading-anchor" href="#Using-ScalarModel-for-Scalar-Functions">Using ScalarModel for Scalar Functions</a><a id="Using-ScalarModel-for-Scalar-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Using-ScalarModel-for-Scalar-Functions" title="Permalink"></a></h3><p>The <code>@.</code> macro in the example above broadcasts the function over all data points. If you prefer to define a simpler scalar function that operates on one data point at a time, use <a href="../../api/problems/#CurveFit.ScalarModel"><code>ScalarModel</code></a>:</p><pre><code class="language-julia hljs">using CurveFit
 
 # Define a scalar function (no @. needed): y = a[1] + a[2] * x^a[3]
@@ -53,7 +53,7 @@ prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
 sol = solve(prob)
 
 println(&quot;Fitted parameters: &quot;, sol.u)
-println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [3.0, 2.0, 0.7]
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [2.9999999999999996, 2.0000000000000004, 0.6999999999999998]
 Prediction at x=5: 9.170338627200096</code></pre><h3 id="Migration-from-LsqFit.jl"><a class="docs-heading-anchor" href="#Migration-from-LsqFit.jl">Migration from LsqFit.jl</a><a id="Migration-from-LsqFit.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Migration-from-LsqFit.jl" title="Permalink"></a></h3><p>If you&#39;re migrating from LsqFit.jl, note these key differences:</p><ol><li><strong>Parameter order is reversed</strong>: LsqFit uses <code>model(x, p)</code>, CurveFit uses <code>model(p, x)</code>.</li><li><strong>Vectorized functions</strong>: CurveFit expects functions that operate on array data. Using <a href="../../api/problems/#CurveFit.ScalarModel"><code>ScalarModel</code></a> makes migration easier.</li></ol><h2 id="Polynomial-Fitting"><a class="docs-heading-anchor" href="#Polynomial-Fitting">Polynomial Fitting</a><a id="Polynomial-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Polynomial-Fitting" title="Permalink"></a></h2><p>Fit a polynomial of a given degree:</p><pre><code class="language-julia hljs">using CurveFit
 
 # Generate sample data: y = 1.0 + 2.0*x + 3.0*x^2
@@ -68,7 +68,7 @@ sol = solve(prob, PolynomialFitAlgorithm(degree=2))
 println(&quot;Coefficients: &quot;, sol.u)
 
 # Evaluate the solution at a point
-println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Coefficients: [1.0000000000000715, 1.999999999999975, 3.0000000000000018]
+println(&quot;Prediction at x=5: &quot;, sol(5.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Coefficients: [1.0000000000000013, 1.9999999999999931, 3.000000000000001]
 Prediction at x=5: 85.99999999999999</code></pre><h2 id="Exponential-Fitting"><a class="docs-heading-anchor" href="#Exponential-Fitting">Exponential Fitting</a><a id="Exponential-Fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Exponential-Fitting" title="Permalink"></a></h2><p>Fit an exponential function <code>y = b * exp(a * x)</code>:</p><pre><code class="language-julia hljs">using CurveFit
 
 # Generate sample data: y = 2.0 * exp(0.3 * x)
@@ -108,9 +108,9 @@ sol = solve(prob, ExpSumFitAlgorithm(n=1, withconst=true))
 # k[] extracts the scalar from a 1-element array
 println(&quot;Constant (k): &quot;, sol.u.k[])
 println(&quot;Amplitude (p): &quot;, sol.u.p[])
-println(&quot;Decay rate (λ): &quot;, sol.u.λ[])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constant (k): 1.9995923847296964
-Amplitude (p): 2.999598865560582
-Decay rate (λ): -0.499566604252092</code></pre><h2 id="Modified-King-fitting"><a class="docs-heading-anchor" href="#Modified-King-fitting">Modified King fitting</a><a id="Modified-King-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Modified-King-fitting" title="Permalink"></a></h2><p>Fit with the modified king law: <code>x^2 = a + b * y^n</code></p><pre><code class="language-julia hljs">using CurveFit
+println(&quot;Decay rate (λ): &quot;, sol.u.λ[])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constant (k): 1.9995923847296977
+Amplitude (p): 2.999598865560577
+Decay rate (λ): -0.499566604252093</code></pre><h2 id="Modified-King-fitting"><a class="docs-heading-anchor" href="#Modified-King-fitting">Modified King fitting</a><a id="Modified-King-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Modified-King-fitting" title="Permalink"></a></h2><p>Fit with the modified king law: <code>x^2 = a + b * y^n</code></p><pre><code class="language-julia hljs">using CurveFit
 
 # Generate the data: x^2 = a + b * y^n
 x = collect(10.0:20.0)
@@ -121,7 +121,7 @@ y = @. ((x^2 - θ_ref[2])/θ_ref[3])^(1/θ_ref[1])
 prob = CurveFitProblem(x, y)
 sol = solve(prob, ModifiedKingCurveFitAlgorithm())
 
-println(&quot;Fitted parameters: &quot;, sol.u)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [1.2999999999996883, 2.5000000000000173, 4.999999999999994]</code></pre><h2 id="Rational-polynomial-fitting"><a class="docs-heading-anchor" href="#Rational-polynomial-fitting">Rational polynomial fitting</a><a id="Rational-polynomial-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Rational-polynomial-fitting" title="Permalink"></a></h2><p>Fit a rational function: <code>y = p(x)/q(x)</code></p><pre><code class="language-julia hljs">using CurveFit
+println(&quot;Fitted parameters: &quot;, sol.u)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Fitted parameters: [1.2999999999997371, 2.500000000000015, 4.999999999999995]</code></pre><h2 id="Rational-polynomial-fitting"><a class="docs-heading-anchor" href="#Rational-polynomial-fitting">Rational polynomial fitting</a><a id="Rational-polynomial-fitting-1"></a><a class="docs-heading-anchor-permalink" href="#Rational-polynomial-fitting" title="Permalink"></a></h2><p>Fit a rational function: <code>y = p(x)/q(x)</code></p><pre><code class="language-julia hljs">using CurveFit
 
 # Generate sample data: y = (1 + 2*x) / (1 + 0.5*x - 0.1*x^2)
 x = collect(range(0, stop=5, length=30))
@@ -139,6 +139,6 @@ println(&quot;Numerator coefficients: &quot;, sol.u[1:2])
 println(&quot;Denominator coefficients: &quot;, vcat(1.0, sol.u[3:4]))
 
 # Evaluate the solution at a point
-println(&quot;Prediction at x=2: &quot;, sol(2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Numerator coefficients: [1.0, 2.0000000000000004]
-Denominator coefficients: [1.0, 0.5000000000000001, -0.10000000000000002]
-Prediction at x=2: 3.1250000000000004</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../linsolve_choice/">Advanced usage »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Saturday 31 January 2026 16:05">Saturday 31 January 2026</span>. Using Julia version 1.12.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+println(&quot;Prediction at x=2: &quot;, sol(2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Numerator coefficients: [1.0, 1.999999999999999]
+Denominator coefficients: [1.0, 0.49999999999999944, -0.09999999999999991]
+Prediction at x=2: 3.1250000000000004</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../linsolve_choice/">Advanced usage »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Sunday 1 February 2026 14:28">Sunday 1 February 2026</span>. Using Julia version 1.12.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
