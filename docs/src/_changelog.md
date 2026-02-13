@@ -7,6 +7,12 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.4.1] - 2026-02-14
+
+### Changed
+- CurveFit now depends only on NonlinearSolveFirstOrder.jl to reduce
+  dependencies ([#85]). The default algorithm remains the same.
+
 ## [v1.4.0] - 2026-01-31
 
 ### Added

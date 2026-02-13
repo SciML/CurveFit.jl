@@ -1,6 +1,6 @@
 @testitem "StatsAPI Integration" begin
     using StatsAPI
-    using NonlinearSolve
+    using NonlinearSolveFirstOrder
     using LinearAlgebra
     using LinearSolve
 

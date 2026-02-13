@@ -20,7 +20,7 @@
 end
 
 @testitem "Modified King's Law" begin
-    using NonlinearSolve
+    using NonlinearSolveFirstOrder
 
     U = range(1, stop = 20, length = 20)
     A = 5.0

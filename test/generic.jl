@@ -17,7 +17,7 @@ end
 @testitem "GenericNonlinearCurveFitCache show" begin
     using CurveFit
     using SciMLBase
-    using NonlinearSolve: LevenbergMarquardt, GaussNewton, TrustRegion
+    using NonlinearSolveFirstOrder: LevenbergMarquardt, GaussNewton, TrustRegion
 
     x = collect(1.0:10.0)
     fn(a, x) = @. a[1] + a[2] * x

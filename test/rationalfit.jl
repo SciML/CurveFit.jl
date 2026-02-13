@@ -16,7 +16,7 @@
 end
 
 @testitem "Nonlinear Rational fit" begin
-    using NonlinearSolve
+    using NonlinearSolveFirstOrder
 
     x = range(1, stop = 10, length = 10)
     r = CurveFit.RationalPolynomial([1.0, 0.0, -2.0], [1.0, 2.0, 3.0])

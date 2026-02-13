@@ -9,8 +9,7 @@ using Setfield: @set!
 using RecursiveArrayTools: NamedArrayPartition
 using FastRationals: FastRational
 using LinearAlgebra: LinearAlgebra, eigvals!, diagm, qr!, lu!, ldiv!
-using LinearSolve: LinearSolve
-using NonlinearSolve: NonlinearSolve
+using NonlinearSolveFirstOrder: NonlinearSolveFirstOrder
 using NonlinearSolveBase: NonlinearSolveBase
 using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm, ReturnCode,
     NonlinearFunction, LinearProblem, NonlinearLeastSquaresProblem, reinit!
