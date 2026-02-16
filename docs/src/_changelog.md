@@ -7,7 +7,12 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v1.4.1] - 2026-02-14
+## [v1.5.1] - 2026-02-16
+
+### Changed
+- Fixed compatibility with NonlinearSolveFirstOrder.jl v2 ([#86]).
+
+## [v1.5.0] - 2026-02-14
 
 ### Changed
 - CurveFit now depends only on NonlinearSolveFirstOrder.jl to reduce
