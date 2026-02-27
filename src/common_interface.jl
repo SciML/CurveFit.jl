@@ -31,7 +31,7 @@ Base.show(io::IO, ::MIME"text/plain", x::T) where {T <: AbstractCurveFitCache} =
 
 # Core Problem Types
 """
-    CurveFitProblem(x, y; nlfunc=nothing, u0=nothing, sigma=nothing)
+    CurveFitProblem(x, y; nlfunc=nothing, u0=nothing, sigma=nothing, lb=nothing, ub=nothing)
 
 Represents a curve fitting problem where `x` and `y` are the data points to fit.
 
@@ -44,6 +44,11 @@ standard deviation of `y`. Note that currently `sigma` is not supported for all
 kinds of fits, check the problem or algorithm docstring to see if sigma is
 supported.
 
+Lower and upper bounds on the parameters can be passed through `lb` and `ub`,
+which should be arrays with the same length as `u0`. Note that currently
+`bounds` is not supported for all kinds of fits, check the problem or algorithm
+docstring to see if bounds are supported.
+
 See also [`NonlinearCurveFitProblem`](@ref).
 """
 @concrete struct CurveFitProblem <: AbstractCurveFitProblem
@@ -52,6 +57,8 @@ See also [`NonlinearCurveFitProblem`](@ref).
     sigma <: Union{AbstractArray, Nothing}
     nlfunc <: Union{Nothing, NonlinearFunction}
     u0 <: Union{Nothing, AbstractArray}
+    lb <: Union{Nothing, AbstractArray}
+    ub <: Union{Nothing, AbstractArray}
 end
 
 function SciMLBase.isinplace(prob::CurveFitProblem)
@@ -66,17 +73,22 @@ function sigma_not_supported(prob::CurveFitProblem)
     return
 end
 
-function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing, sigma = nothing)
+function bounds_not_supported(prob::CurveFitProblem)
+    @assert isnothing(prob.lb) && isnothing(prob.ub) "Passing bounds (lb/ub) is not supported for this algorithm"
+    return
+end
+
+function CurveFitProblem(x, y; nlfunc = nothing, u0 = nothing, sigma = nothing, lb = nothing, ub = nothing)
     if nlfunc === nothing
         @assert ndims(x) == ndims(y) == 1 "x and y must be 1-dimensional arrays for linear \
                                        problems (`nlfunc` is `nothing`)"
     end
 
-    return CurveFitProblem(x, y, sigma, nlfunc, u0)
+    return CurveFitProblem(x, y, sigma, nlfunc, u0, lb, ub)
 end
 
 @doc doc"""
-    NonlinearCurveFitProblem(f, u0, x, y=nothing, sigma=nothing)
+    NonlinearCurveFitProblem(f, u0, x, y=nothing, sigma=nothing; lb=nothing, ub=nothing)
 
 Nonlinear curve fitting problem where `f` is a nonlinear function to fit, `u0` is the
 initial guess for the coefficients, `x` and `y` are the data points to fit, and
@@ -89,6 +101,9 @@ optimization problem is solved:
 
 If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
 ideally a `NonlinearFunction` from [`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
+
+Lower and upper bounds on the parameters can be passed through `lb` and `ub` keyword
+arguments. These should be arrays with the same length as `u0`.
 
 ## Function Signature
 
@@ -115,11 +130,11 @@ prob = NonlinearCurveFitProblem(ScalarModel(fn_scalar), u0, x, y)
 
 See also [`ScalarModel`](@ref).
 """
-function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing, sigma = nothing)
-    return CurveFitProblem(x, y; nlfunc = f, u0 = u0, sigma)
+function NonlinearCurveFitProblem(f::NonlinearFunction, u0, x, y = nothing, sigma = nothing; lb = nothing, ub = nothing)
+    return CurveFitProblem(x, y; nlfunc = f, u0 = u0, sigma, lb, ub)
 end
-function NonlinearCurveFitProblem(f::F, u0, x, y = nothing, sigma = nothing) where {F}
-    return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y, sigma)
+function NonlinearCurveFitProblem(f::F, u0, x, y = nothing, sigma = nothing; lb = nothing, ub = nothing) where {F}
+    return NonlinearCurveFitProblem(NonlinearFunction(f), u0, x, y, sigma; lb, ub)
 end
 
 """
@@ -207,6 +222,8 @@ Note that this is a general problem specification of a curve fitting problem whi
 be converted to a linear fit in a specific function space by choosing appropriate
 `xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
 original space (can be specified by defining `InverseFunctions.inverse`).
+
+This algorithm does not support bounds constraints (`lb`/`ub`).
 """
 function LinearCurveFitAlgorithm(;
         xfun = identity, yfun = identity, yfun_inverse = inverse(yfun)
@@ -219,7 +236,7 @@ end
 
 Represents a log curve fitting algorithm where `x` and `y` are the data points
 to fit. If the [`CurveFitProblem`](@ref) being solved has a `sigma` then
-it will be used as weights.
+it will be used as weights. This algorithm does not support bounds constraints (`lb`/`ub`).
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -233,7 +250,7 @@ LogCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = identity)
 
 Represents a power curve fitting algorithm where `x` and `y` are the data points
 to fit. This algorithm does not support passing weights through `sigma` in
-[`CurveFitProblem`](@ref).
+[`CurveFitProblem`](@ref). This algorithm does not support bounds constraints (`lb`/`ub`).
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -253,7 +270,7 @@ PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
 
 Represents an exponential curve fitting algorithm where `x` and `y` are the data points to
 fit. This algorithm does not support passing weights through `sigma` in
-[`CurveFitProblem`](@ref).
+[`CurveFitProblem`](@ref). This algorithm does not support bounds constraints (`lb`/`ub`).
 We want to solve for `a` and `b` such that:
 
 ```math
@@ -273,7 +290,7 @@ ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
 
 Represents a king curve fitting problem where `x` and `y` are the data points to
 fit. This algorithm does not support passing weights through `sigma` in
-[`CurveFitProblem`](@ref).
+[`CurveFitProblem`](@ref). This algorithm does not support bounds constraints (`lb`/`ub`).
 We want to solve for `a` and `b` according to original King's law (1910) that represents
 the relationship between voltage (E) and velocity (U) in a hotwire anemometer:
 
@@ -299,6 +316,9 @@ E^2 = A + B U^n
 ```
 
 where `n` is also a parameter.
+
+This algorithm supports bounds constraints via `lb` and `ub` in
+[`CurveFitProblem`](@ref).
 """
 @kwdef @concrete struct ModifiedKingCurveFitAlgorithm <: AbstractCurveFitAlgorithm
     alg <: Union{Nothing, AbstractNonlinearAlgorithm} = nothing
@@ -313,7 +333,8 @@ end
 
 Represents a polynomial fitting algorithm of degree `degree`. Only applicable to
 [`LinearCurveFitAlgorithm`](@ref)s. This algorithm does not support passing
-weights through `sigma` in [`CurveFitProblem`](@ref).
+weights through `sigma` in [`CurveFitProblem`](@ref). This algorithm does not support
+bounds constraints (`lb`/`ub`).
 
 !!! tip
 
@@ -364,6 +385,9 @@ where the zero order term of `q(x)` is assumed to be 1.
 
 If an `u0` is not provided to the problem, then we will use linear least squares for an
 initial guess.
+
+The nonlinear variant of this algorithm supports bounds constraints via `lb` and `ub` in
+[`CurveFitProblem`](@ref).
 """
 @kwdef @concrete struct RationalPolynomialFitAlgorithm <: AbstractCurveFitAlgorithm
     num_degree::Int
@@ -379,7 +403,8 @@ end
     ExpSumFitAlgorithm(; n::Int, m::Int = 1, withconst::Bool = true)
 
 Fits the sum of `n` exponentials and a constant. This algorithm does not support
-passing weights through `sigma` in [`CurveFitProblem`](@ref).
+passing weights through `sigma` in [`CurveFitProblem`](@ref). This algorithm does not
+support bounds constraints (`lb`/`ub`).
 
 ```math
 y = k + p_1 e^{λ_1 t} + p_2 e^{λ_2 t} + ⋯ + p_n e^{λ_n t}

@@ -66,6 +66,7 @@ function CommonSolve.init(
     if alg.alg isa AbstractLinearAlgorithm
         @assert prob.u0 === nothing "Rational polynomial fit doesn't support initial \
                                    guess (u0) specification"
+        bounds_not_supported(prob)
 
         A = similar(prob.x, length(prob.x), coeffs_length)
         return LinearRationalFitCache(
@@ -89,7 +90,8 @@ function CommonSolve.init(
             ),
             similar(prob.x, coeffs_length),
             prob.x,
-            prob.y
+            prob.y;
+            lb = prob.lb, ub = prob.ub
         ),
         __FallbackNonlinearFitAlgorithm(alg.alg);
         kwargs...
@@ -141,7 +143,8 @@ function CommonSolve.solve!(cache::NonlinearRationalFitCache)
         ),
         u0,
         cache.prob.x,
-        cache.prob.y
+        cache.prob.y;
+        lb = cache.prob.lb, ub = cache.prob.ub
     )
 
     sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)

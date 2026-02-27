@@ -24,7 +24,15 @@ function CommonSolve.init(
     initial_guess_cache = if prob.u0 !== nothing
         nothing
     else
-        init(prob, KingCurveFitAlgorithm(); kwargs...)
+        # KingCurveFitAlgorithm doesn't support bounds so we need to remove them first
+        nobounds_prob = if !isnothing(prob.lb) || !isnothing(prob.ub)
+            x = @set prob.lb = nothing
+            @set! x.ub = nothing
+            x
+        else
+            prob
+        end
+        init(nobounds_prob, KingCurveFitAlgorithm(); kwargs...)
     end
 
     nonlinear_cache = init(
@@ -35,7 +43,8 @@ function CommonSolve.init(
             ),
             similar(prob.x, 3),
             stack((prob.x, prob.y); dims = 1),
-            nothing
+            nothing;
+            lb = prob.lb, ub = prob.ub
         ),
         __FallbackNonlinearFitAlgorithm(alg.alg);
         kwargs...
@@ -60,7 +69,8 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
         ),
         u0,
         stack((cache.prob.x, cache.prob.y); dims = 1),
-        nothing
+        nothing;
+        lb = cache.prob.lb, ub = cache.prob.ub
     )
 
     sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)

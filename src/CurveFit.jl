@@ -4,7 +4,7 @@ using CommonSolve: CommonSolve, init, solve!, solve
 using ConcreteStructs: @concrete
 using InverseFunctions: inverse
 using Markdown: @doc_str
-using Setfield: @set!
+using Setfield: @set, @set!
 
 using RecursiveArrayTools: NamedArrayPartition
 using FastRationals: FastRational

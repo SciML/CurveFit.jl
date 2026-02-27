@@ -47,4 +47,13 @@ end
             @test sol(val) ≈ fn(val) atol = 1.0e-8
         end
     end
+
+    # Test bounds: constrain n to [0.0, 0.3], which excludes the true value of 0.42
+    lb = [-Inf, -Inf, 0.0]
+    ub = [Inf, Inf, 0.3]
+
+    prob = CurveFitProblem(E, U; lb, ub)
+    sol = solve(prob, ModifiedKingCurveFitAlgorithm())
+
+    @test 0.0 <= sol.u[3] <= 3.0
 end

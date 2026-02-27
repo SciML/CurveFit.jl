@@ -7,6 +7,11 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.6.0] - 2026-02-28
+
+### Added
+- Implemented support for bounds for some algorithms ([#87]).
+
 ## [v1.5.1] - 2026-02-16
 
 ### Changed

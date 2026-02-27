@@ -39,4 +39,14 @@ end
             @test sol(val) ≈ r(val) atol = 1.0e-8
         end
     end
+
+    # Test bounds: constrain first coefficient to [0.0, 0.5], excluding the true
+    # value of 1.0.
+    lb = [0.0, -Inf, -Inf, -Inf, -Inf, -Inf]
+    ub = [0.5, Inf, Inf, Inf, Inf, Inf]
+
+    prob = CurveFitProblem(x, y; lb, ub)
+    sol = solve(prob, RationalPolynomialFitAlgorithm(2, 3, LevenbergMarquardt()))
+
+    @test 0.0 <= sol.u[1] <= 0.5
 end

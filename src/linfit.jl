@@ -48,6 +48,7 @@ function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; k
                                specification"
     @assert alg.yfun === identity || isnothing(prob.sigma) "Weights (sigma) are not \
         supported when yfun ≠ identity (e.g., PowerCurveFitAlgorithm, ExpCurveFitAlgorithm)"
+    bounds_not_supported(prob)
 
     return GenericLinearFitCache(prob, kwargs, alg)
 end
@@ -85,6 +86,7 @@ function CommonSolve.init(
     @assert prob.u0 === nothing "Polynomial fit doesn't support initial guess \
                                (u0) specification"
     sigma_not_supported(prob)
+    bounds_not_supported(prob)
 
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
     linsolve_cache = init(

@@ -83,7 +83,8 @@ function CommonSolve.init(
         prob,
         init(
             NonlinearLeastSquaresProblem(
-                __wrap_nonlinear_function(prob.nlfunc, prob.y, prob.sigma), prob.u0, prob.x
+                __wrap_nonlinear_function(prob.nlfunc, prob.y, prob.sigma), prob.u0, prob.x;
+                lb = prob.lb, ub = prob.ub
             ),
             alg.alg;
             kwargs...
