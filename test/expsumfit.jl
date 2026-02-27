@@ -1,4 +1,4 @@
-@testitem "ExpSumFit: Integration rules" begin
+@testitem "ExpSumFit: Integration rules" tags = [:expsumfit] begin
     # Trapezoidal rule
     @test CurveFit.__calc_integral_rules(Rational{Int64}, 1:1; m = 1) == [1 // 2 1 // 2]
 
@@ -17,7 +17,7 @@
         [39 // 40 27 // 10 27 // 40 3 // 20]
 end
 
-@testitem "ExpSumFit: Cumulative integrals" begin
+@testitem "ExpSumFit: Cumulative integrals" tags = [:expsumfit] begin
     n = 4
 
     x = collect(0:0.4:10)
@@ -99,7 +99,7 @@ end
     end
 end
 
-@testitem "ExpSumFit" begin
+@testitem "ExpSumFit" tags = [:expsumfit] begin
     x = collect(0.02:0.02:1.5)
     y = @. 5 * exp(0.5 * x) + 4 * exp(-3 * x) + 2 * exp(-2 * x) - 3 * exp(0.15 * x)
 

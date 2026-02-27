@@ -1,4 +1,4 @@
-@testitem "CurveFitSolution" begin
+@testitem "CurveFitSolution" tags = [:generic] begin
     using SciMLBase
 
     x = 1:10
@@ -14,7 +14,7 @@
     @test contains(repr(MIME"text/plain"(), nonlinear_sol), "residuals mean:")
 end
 
-@testitem "GenericNonlinearCurveFitCache show" begin
+@testitem "GenericNonlinearCurveFitCache show" tags = [:generic] begin
     using CurveFit
     using SciMLBase
     using NonlinearSolveFirstOrder: LevenbergMarquardt, GaussNewton, TrustRegion

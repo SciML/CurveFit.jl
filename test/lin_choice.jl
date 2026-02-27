@@ -1,4 +1,4 @@
-@testitem "Linear solver choice testing" begin
+@testitem "Linear solver choice testing" tags = [:lin_choice] begin
     @testset "LUFactorization" begin
         using CurveFit
         using LinearSolve

@@ -1,4 +1,4 @@
-@testitem "StatsAPI Integration" begin
+@testitem "StatsAPI Integration" tags = [:stats] begin
     using StatsAPI
     using NonlinearSolveFirstOrder
     using LinearAlgebra

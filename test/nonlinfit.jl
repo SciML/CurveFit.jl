@@ -1,4 +1,4 @@
-@testitem "Nonlinear Least Squares: Linear Problem 1" begin
+@testitem "Nonlinear Least Squares: Linear Problem 1" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -18,7 +18,7 @@
     end
 end
 
-@testitem "Nonlinear Least Squares: Nonlinear Problem 1" begin
+@testitem "Nonlinear Least Squares: Nonlinear Problem 1" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -38,7 +38,7 @@ end
     end
 end
 
-@testitem "Nonlinear Least Squares: Linear Problem 2" begin
+@testitem "Nonlinear Least Squares: Linear Problem 2" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -63,7 +63,7 @@ end
     end
 end
 
-@testitem "Nonlinear Least Squares: Nonlinear Problem 2" begin
+@testitem "Nonlinear Least Squares: Nonlinear Problem 2" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -88,7 +88,7 @@ end
     end
 end
 
-@testitem "Nonlinear Least Squares: reinit!()" begin
+@testitem "Nonlinear Least Squares: reinit!()" tags = [:nonlinfit] begin
     using CurveFit
     using SciMLBase
 
@@ -112,7 +112,7 @@ end
     @test solve!(cache).u ≈ a0 atol = 1.0e-7
 end
 
-@testitem "Nonlinear Weighted Least Squares" begin
+@testitem "Nonlinear Weighted Least Squares" tags = [:nonlinfit] begin
     using SciMLBase
 
     fn(a, x) = @. a[1] + a[2] * x
@@ -141,7 +141,7 @@ end
     @test SciMLBase.successful_retcode(sol_weighted)
 end
 
-@testitem "Gauss-Newton curve fitting: Linear problem" begin
+@testitem "Gauss-Newton curve fitting: Linear problem" tags = [:nonlinfit] begin
     using SciMLBase
 
     U = 0.5:0.5:10
@@ -163,7 +163,7 @@ end
 end
 
 # Regression test for https://github.com/SciML/CurveFit.jl/issues/69
-@testitem "Issue #69: y ~ a/x with noisy data" begin
+@testitem "Issue #69: y ~ a/x with noisy data" tags = [:nonlinfit] begin
     using SciMLBase
 
     # Original issue: fitting y ~ a/x failed with NaN when data had noise
@@ -208,7 +208,7 @@ end
     @test !isnan(sol4.u[1])
 end
 
-@testitem "Issue #69: Robustness with larger noise" begin
+@testitem "Issue #69: Robustness with larger noise" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -225,7 +225,7 @@ end
 end
 
 # Tests for ScalarModel - Issue #46
-@testitem "ScalarModel: Basic polynomial fitting" begin
+@testitem "ScalarModel: Basic polynomial fitting" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -252,7 +252,7 @@ end
     end
 end
 
-@testitem "ScalarModel: Nonlinear power function" begin
+@testitem "ScalarModel: Nonlinear power function" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = 1.0:10.0
@@ -277,7 +277,7 @@ end
     end
 end
 
-@testitem "ScalarModel: Exponential decay (LsqFit-style migration)" begin
+@testitem "ScalarModel: Exponential decay (LsqFit-style migration)" tags = [:nonlinfit] begin
     using SciMLBase
 
     # This test demonstrates migration from LsqFit.jl style
@@ -304,7 +304,7 @@ end
     @test sol(5.0) ≈ model(true_params, 5.0)
 end
 
-@testitem "ScalarModel: Reciprocal function" begin
+@testitem "ScalarModel: Reciprocal function" tags = [:nonlinfit] begin
     using SciMLBase
 
     x = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -321,7 +321,7 @@ end
     @test SciMLBase.successful_retcode(sol.retcode)
 end
 
-@testitem "ScalarModel: Equivalence with vectorized @. form" begin
+@testitem "ScalarModel: Equivalence with vectorized @. form" tags = [:nonlinfit] begin
     using SciMLBase
 
     # Verify that ScalarModel produces the same results as @. form

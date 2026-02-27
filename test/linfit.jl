@@ -1,4 +1,4 @@
-@testitem "Linear Fit" begin
+@testitem "Linear Fit" tags = [:linfit] begin
     x = range(1, stop = 10, length = 10)
 
     fn(x) = 1.0 + 2.0 * x
@@ -15,7 +15,7 @@
     end
 end
 
-@testitem "Log Fit" begin
+@testitem "Log Fit" tags = [:linfit] begin
     x = range(1, stop = 10, length = 10)
 
     fn(x) = 1.0 + 2.0 * log(x)
@@ -32,7 +32,7 @@ end
     end
 end
 
-@testitem "Power Fit" begin
+@testitem "Power Fit" tags = [:linfit] begin
     x = range(1, stop = 10, length = 10)
 
     fn(x) = 2.0 * x .^ 0.8
@@ -53,7 +53,7 @@ end
     @test_throws AssertionError solve(prob_sigma, PowerCurveFitAlgorithm())
 end
 
-@testitem "Exp Fit" begin
+@testitem "Exp Fit" tags = [:linfit] begin
     x = range(1, stop = 10, length = 10)
 
     fn(x) = 2.0 * exp.(0.8 * x)
@@ -74,7 +74,7 @@ end
     @test_throws AssertionError solve(prob_sigma, ExpCurveFitAlgorithm())
 end
 
-@testitem "Polynomial Fit" begin
+@testitem "Polynomial Fit" tags = [:linfit] begin
     using LinearSolve
 
     x = range(1, stop = 10, length = 10)
@@ -131,7 +131,7 @@ end
     end
 end
 
-@testitem "Linear Weighted Least Squares" begin
+@testitem "Linear Weighted Least Squares" tags = [:linfit] begin
     using SciMLBase
 
     x = 1:10

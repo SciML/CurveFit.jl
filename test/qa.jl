@@ -1,9 +1,9 @@
-@testitem "Aqua tests" tags = [:nopre] begin
+@testitem "Aqua tests" tags = [:qa, :nopre] begin
     using Aqua
     Aqua.test_all(CurveFit)
 end
 
-@testitem "Explicit Imports" begin
+@testitem "Explicit Imports" tags = [:qa] begin
     using ExplicitImports
     using StatsAPI
 

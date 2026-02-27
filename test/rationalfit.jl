@@ -1,4 +1,4 @@
-@testitem "Linear Rational fit" begin
+@testitem "Linear Rational fit" tags = [:rationalfit] begin
     using LinearSolve, LinearAlgebra
 
     x = range(1, stop = 10, length = 10)
@@ -15,7 +15,7 @@
     end
 end
 
-@testitem "Nonlinear Rational fit" begin
+@testitem "Nonlinear Rational fit" tags = [:rationalfit] begin
     using NonlinearSolveFirstOrder
 
     x = range(1, stop = 10, length = 10)

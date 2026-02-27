@@ -1,4 +1,4 @@
-@testitem "King's Law" begin
+@testitem "King's Law" tags = [:king] begin
     U = range(1, stop = 20, length = 20)
     A = 5.0
     B = 1.5
@@ -19,7 +19,7 @@
     @test_throws AssertionError solve(prob_sigma, KingCurveFitAlgorithm())
 end
 
-@testitem "Modified King's Law" begin
+@testitem "Modified King's Law" tags = [:king] begin
     using NonlinearSolveFirstOrder
 
     U = range(1, stop = 20, length = 20)
