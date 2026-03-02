@@ -335,8 +335,7 @@ end
     margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
 
 Returns the margin of error of the fitted coefficients, computed as
-`stderror(sol) * t` where `t` is the critical value of the t-distribution for `1
-- alpha / 2`.
+`stderror(sol) * t` where `t` is the critical value of the t-distribution for `1 - alpha / 2`.
 """
 function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
     std_errors = stderror(sol; rtol = rtol, atol = atol)
