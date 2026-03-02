@@ -7,6 +7,11 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.7.0] - 2026-03-02
+
+### Added
+- Added a precompilation workload to reduce TTFX ([#90]).
+
 ## [v1.6.0] - 2026-02-28
 
 ### Added
