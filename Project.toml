@@ -1,6 +1,6 @@
 name = "CurveFit"
 uuid = "5a033b19-8c74-5913-a970-47c3779ef25c"
-version = "1.8.0"
+version = "1.8.1"
 authors = ["Paulo José Saiz Jabardo <pjabardo@gmail.com>, Avik Pal <avikpal@mit.edu> and contributors"]
 
 [deps]
@@ -41,7 +41,7 @@ NonlinearSolveBase = "2.15"
 NonlinearSolveFirstOrder = "2"
 PrecompileTools = "1"
 RecursiveArrayTools = "3.33.0, 4.0"
-SciMLBase = "2.90"
+SciMLBase = "2.90, 3.1"
 Setfield = "1.1.2"
 StatsAPI = "1.8.0"
 Test = "1.10"
