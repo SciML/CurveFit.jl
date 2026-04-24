@@ -7,6 +7,34 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.9.0] - 2026-04-24
+
+### Added
+- Added an `absolute_sigma` argument to [`vcov()`](@ref) and related functions
+  to control whether the covariance matrix is rescaled by reduced χ² ([#97]).
+- Added a `weighted` argument to [`residuals()`](@ref) and related functions to
+  control whether the returned residuals are scaled by the problem weights, if
+  any ([#97]).
+
+### Changed
+- The `resid` field of [`CurveFitSolution`](@ref) now consistently stores the
+  *weighted* residuals for both linear and nonlinear fits ([#97]). Previously
+  the unweighted residuals were stored for linear fits.
+
+### Fixed
+- [`vcov()`](@ref) and related functions previously ignored the problem weights,
+  they are now taken into account when present ([#97]).
+
+## [v1.8.1] - 2026-04-13
+
+### Changed
+- Added support for SciMLBase v3 ([#95]).
+
+## [v1.8.0] - 2026-04-07
+
+### Changed
+- Added support for RecursiveArrayTools 4.0 ([#94]).
+
 ## [v1.7.0] - 2026-03-02
 
 ### Added
