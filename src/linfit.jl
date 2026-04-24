@@ -59,6 +59,12 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
     )
     y_pred = cache.alg.yfun_inverse.(b .+ a .* cache.alg.xfun.(cache.prob.x))
     resid = cache.prob.y .- y_pred
+
+    # Store weighted residuals to match nonlinear fits
+    if !isnothing(cache.prob.sigma)
+        resid ./= cache.prob.sigma
+    end
+
     return CurveFitSolution(
         cache.alg, (a, b), resid, cache.prob, ReturnCode.Success
     )
