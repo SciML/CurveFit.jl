@@ -10,15 +10,20 @@ function StatsAPI.coef(sol::CurveFitSolution)
 end
 
 """
-    residuals(sol::CurveFitSolution)
+    residuals(sol::CurveFitSolution; weighted::Bool = true)
 
 Return the residuals of the fitted model.
 
-Residuals are defined as the difference between the observed data and the model
-predictions evaluated at the fitted coefficients.
+When the problem was constructed with a `sigma`, residuals are returned as the
+weighted form `(y - ŷ) / σ` (i.e. the quantity actually minimized by the
+solver). Pass `weighted = false` to instead get the raw `y - ŷ`. Without a
+`sigma`, both options return the same thing.
 """
-function StatsAPI.residuals(sol::CurveFitSolution)
-    return sol.resid
+function StatsAPI.residuals(sol::CurveFitSolution; weighted::Bool = true)
+    if weighted || isnothing(sol.prob.sigma)
+        return sol.resid
+    end
+    return sol.resid .* sol.prob.sigma
 end
 
 """
@@ -72,25 +77,27 @@ function StatsAPI.dof_residual(sol::CurveFitSolution)
 end
 
 """
-    rss(sol::CurveFitSolution)
+    rss(sol::CurveFitSolution; weighted::Bool = true)
 
-Return the residual sum of squares (RSS).
+Return the residual sum of squares (RSS), defined as `sum(abs2, residuals(sol; weighted))`.
 
-This is defined as `sum(abs2, residuals(sol))`.
+When `sigma` was provided to the problem, the default weighted RSS is χ². Pass
+`weighted = false` to get the unweighted `sum(abs2, y - ŷ)` instead.
 """
-function StatsAPI.rss(sol::CurveFitSolution)
-    return sum(abs2, residuals(sol))
+function StatsAPI.rss(sol::CurveFitSolution; weighted::Bool = true)
+    return sum(abs2, residuals(sol; weighted))
 end
 
 """
-    mse(sol::CurveFitSolution)
+    mse(sol::CurveFitSolution; weighted::Bool = true)
 
 Return the [mean squared error](https://en.wikipedia.org/wiki/Mean_squared_error) of the fit.
 
-The mean squared error is computed as `rss(sol) / dof_residual(sol)`.
+Computed as `rss(sol; weighted) / dof_residual(sol)`. With a `sigma` on the
+problem this is the reduced χ²; pass `weighted = false` for the plain MSE.
 """
-function mse(sol::CurveFitSolution)
-    return rss(sol) / dof_residual(sol)
+function mse(sol::CurveFitSolution; weighted::Bool = true)
+    return rss(sol; weighted) / dof_residual(sol)
 end
 
 function jacobian(sol::CurveFitSolution{<:LinearCurveFitAlgorithm})
@@ -278,16 +285,25 @@ end
 
 
 """
-    vcov(sol::CurveFitSolution)
+    vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
 
 Return the variance–covariance matrix of the fitted coefficients.
 
-The covariance matrix is computed using the Jacobian of the fitted model and a
-QR-based least squares formulation. This function is defined for solutions to
-both linear and nonlinear problems.
+The covariance matrix is computed via QR on the (weighted) Jacobian. When
+`sigma` was provided to the problem, the Jacobian is scaled by `1 / σ` so the
+result is `(JᵀWJ)⁻¹` with `W = diag(1 / σ²)`.
+
+The covariance is then rescaled by reduced χ² (i.e. `mse(sol)`) so that `sigma`
+acts as a relative weight. Pass `absolute_sigma = true` to skip this rescaling
+when `sigma` carries absolute physical uncertainties (analogous to scipy's
+`curve_fit(absolute_sigma=true)`).
 """
-function StatsAPI.vcov(sol::CurveFitSolution)
+function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
     J = jacobian(sol)
+
+    if !isnothing(sol.prob.sigma)
+        J ./= sol.prob.sigma
+    end
 
     # Compute the covariance matrix from the QR decomposition
     # This is numerically more stable than inv(J'J)
@@ -300,21 +316,25 @@ function StatsAPI.vcov(sol::CurveFitSolution)
     # Ideally checking rank(R) would be good, but assuming J is full rank for now.
 
     Rinv = inv(R)
-    covar = Rinv * Rinv' * mse(sol)
+    covar = Rinv * Rinv'
+
+    if !absolute_sigma
+        covar .*= mse(sol)
+    end
 
     return covar
 end
 
 """
-    stderror(sol::CurveFitSolution; rtol = NaN, atol = 0)
+    stderror(sol::CurveFitSolution; absolute_sigma = false, rtol = NaN, atol = 0)
 
 Return the standard errors of the fitted coefficients.
 
 Standard errors are computed as the square roots of the diagonal elements of the
-variance–covariance matrix.
+variance–covariance matrix. See [`vcov`](@ref) for the meaning of `absolute_sigma`.
 """
-function StatsAPI.stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real = 0)
-    covar = vcov(sol)
+function StatsAPI.stderror(sol::CurveFitSolution; absolute_sigma::Bool = false, rtol::Real = NaN, atol::Real = 0)
+    covar = vcov(sol; absolute_sigma)
     vars = LinearAlgebra.diag(covar)
 
     # Safety check from LsqFit.jl
@@ -332,27 +352,29 @@ function StatsAPI.stderror(sol::CurveFitSolution; rtol::Real = NaN, atol::Real =
 end
 
 """
-    margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
+    margin_error(sol::CurveFitSolution, alpha = 0.05; absolute_sigma = false, rtol = NaN, atol = 0)
 
 Returns the margin of error of the fitted coefficients, computed as
 `stderror(sol) * t` where `t` is the critical value of the t-distribution for `1 - alpha / 2`.
+See [`vcov`](@ref) for the meaning of `absolute_sigma`.
 """
-function margin_error(sol::CurveFitSolution, alpha = 0.05; rtol::Real = NaN, atol::Real = 0)
-    std_errors = stderror(sol; rtol = rtol, atol = atol)
+function margin_error(sol::CurveFitSolution, alpha = 0.05; absolute_sigma::Bool = false, rtol::Real = NaN, atol::Real = 0)
+    std_errors = stderror(sol; absolute_sigma, rtol, atol)
     dist = TDist(dof(sol))
     critical_values = quantile(dist, 1 - alpha / 2)
     return std_errors * critical_values
 end
 
 """
-    confint(sol::CurveFitSolution; level = 0.95, rtol = NaN, atol = 0)
+    confint(sol::CurveFitSolution; level = 0.95, absolute_sigma = false, rtol = NaN, atol = 0)
 
 Return confidence intervals for the fitted parameters.
 
 The confidence intervals are returned as a vector of `(lower, upper)` tuples,
-computed as `coef(sol) ± margin_error(sol)`.
+computed as `coef(sol) ± margin_error(sol)`. See [`vcov`](@ref) for the meaning
+of `absolute_sigma`.
 """
-function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, rtol::Real = NaN, atol::Real = 0)
-    margin_of_errors = margin_error(sol, 1 - level; rtol = rtol, atol = atol)
+function StatsAPI.confint(sol::CurveFitSolution; level = 0.95, absolute_sigma::Bool = false, rtol::Real = NaN, atol::Real = 0)
+    margin_of_errors = margin_error(sol, 1 - level; absolute_sigma, rtol, atol)
     return collect(zip(coef(sol) .- margin_of_errors, coef(sol) .+ margin_of_errors))
 end

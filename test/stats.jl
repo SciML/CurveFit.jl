@@ -228,6 +228,17 @@
         @test size(vcov(sol_lm_chol)) == (3, 3)
     end
 
+    @testset "Weighted residuals and absolute_sigma" begin
+        x = collect(1.0:5.0)
+        y = 2.0 .* x .+ 1.0 .+ [0.1, -0.1, 0.2, -0.2, 0.0]
+        sigma = [0.5, 0.7, 1.0, 1.2, 1.5]
+
+        sol = solve(CurveFitProblem(x, y; sigma), LinearCurveFitAlgorithm())
+
+        @test residuals(sol) ≈ residuals(sol; weighted = false) ./ sigma
+        @test vcov(sol) ≈ vcov(sol; absolute_sigma = true) .* mse(sol)
+    end
+
     @testset "Extended Algorithm Test Coverage" begin
         x_data = collect(1.0:0.5:5.0)
         y_data = 2.0 .* x_data .^ 0.5 .+ 0.1
