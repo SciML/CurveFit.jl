@@ -7,6 +7,12 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## v[1.9.1] - 2026-04-25
+
+### Fixed
+- Fixed support for `reinit!()`'ing nonlinear fit caches when using the new
+  `AutoSpecializeCallable` wrapper from NonlinearSolve ([#98]).
+
 ## [v1.9.0] - 2026-04-24
 
 ### Added

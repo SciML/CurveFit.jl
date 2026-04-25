@@ -6,6 +6,9 @@ end
 
 SciMLBase.isinplace(::NonlinearFunctionWrapper{iip}) where {iip} = iip
 
+_unwrap_nonlinear_function(f::NonlinearFunctionWrapper) = f
+_unwrap_nonlinear_function(f::NonlinearSolveBase.AutoSpecializeCallable) = _unwrap_nonlinear_function(f.orig)
+
 # If `target` is nothing then we can completely ignore sigma
 __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, _) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target, sigma)
@@ -57,7 +60,7 @@ function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x
     end
 
     # Update `y` inplace
-    wrapper = cache.cache.prob.f.f
+    wrapper = _unwrap_nonlinear_function(cache.cache.prob.f.f)
     if !isnothing(y)
         copyto!(wrapper.target, y)
     end
