@@ -131,7 +131,7 @@
         @test all(stderror(sol_rat) .> 0)
     end
 
-    @testset "Explcit API Coverage (ExpSum)" begin
+    @testset "Explicit API Coverage (ExpSum)" begin
         # Test ExpSumFitAlgorithm explicitly to ensure jacobian works
         # y = k + p*exp(lam*x)
         # Truth: k=1, p=2, lam=-0.5
