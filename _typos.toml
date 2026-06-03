@@ -1,0 +1,4 @@
+[default.extend-words]
+# Polynomial / rational coefficient notation: [p0...pn, q1...qn]
+pn = "pn"
+qn = "qn"

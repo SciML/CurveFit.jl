@@ -1,0 +1,8 @@
+name: Spell Check
+
+on: [pull_request]
+
+jobs:
+  typos-check:
+    uses: "SciML/.github/.github/workflows/spellcheck.yml@v1"
+    secrets: "inherit"
