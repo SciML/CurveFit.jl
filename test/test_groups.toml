@@ -1,0 +1,13 @@
+# Root test-group matrix for CurveFit.jl, consumed by the reusable
+# grouped-tests.yml workflow via scripts/compute_affected_sublibraries.jl
+# --root-matrix. runtests.jl reads the GROUP env var and dispatches via
+# TestItemRunner tags: "All" runs everything except :nopre-tagged items,
+# "nopre" runs only :nopre-tagged items.
+
+[All]
+versions = ["1", "lts", "pre"]
+os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
+
+[nopre]
+versions = ["1", "lts"]
+os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
