@@ -1,12 +1,9 @@
-@testitem "Aqua tests" tags = [:qa, :nopre] begin
-    using Aqua
-    Aqua.test_all(CurveFit)
-end
+using CurveFit
+using Test
+using ExplicitImports
+using StatsAPI
 
-@testitem "Explicit Imports" tags = [:qa] begin
-    using ExplicitImports
-    using StatsAPI
-
+@testset "Explicit Imports" begin
     @test check_no_implicit_imports(CurveFit) === nothing
     @test check_no_stale_explicit_imports(CurveFit) === nothing
     @test check_no_self_qualified_accesses(CurveFit) === nothing
