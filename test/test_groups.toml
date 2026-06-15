@@ -1,13 +1,23 @@
 # Root test-group matrix for CurveFit.jl, consumed by the reusable
 # grouped-tests.yml workflow via scripts/compute_affected_sublibraries.jl
-# --root-matrix. runtests.jl reads the GROUP env var and dispatches via
-# TestItemRunner tags: "All" runs everything except :nopre-tagged items,
-# "nopre" runs only :nopre-tagged items.
+# --root-matrix, and by SciMLTesting's run_tests() folder-discovery mode in
+# runtests.jl. Each table key is a GROUP value passed to runtests.jl.
+#
+#   "Core"  -> the top-level test/*.jl files (the functional fits plus the
+#              ExplicitImports check). Runs on 1/lts/pre.
+#   "nopre" -> the test/nopre/ folder (Aqua), which is brittle on prereleases,
+#              so it runs only on 1/lts. `in_all = false` keeps it out of a
+#              local GROUP=All aggregate run.
+#
+# This replaces the former TestItemRunner tag split (GROUP=All ran every
+# @testitem except :nopre; GROUP=nopre ran only the :nopre-tagged Aqua item):
+# the same tests run under the same two (group x version) CI cells.
 
-[All]
+[Core]
 versions = ["1", "lts", "pre"]
 os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
 
 [nopre]
+in_all = false
 versions = ["1", "lts"]
 os = ["ubuntu-latest", "macOS-latest", "windows-latest"]

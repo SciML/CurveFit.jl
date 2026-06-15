@@ -1,9 +1,11 @@
-@testitem "StatsAPI Integration" tags = [:stats] begin
-    using StatsAPI
-    using NonlinearSolveFirstOrder
-    using LinearAlgebra
-    using LinearSolve
+using CurveFit
+using Test
+using StatsAPI
+using NonlinearSolveFirstOrder
+using LinearAlgebra
+using LinearSolve
 
+@testset "StatsAPI Integration" begin
     @testset "Linear Fit" begin
         # y = 2x + 1
         x = [1.0, 2.0, 3.0, 4.0, 5.0]

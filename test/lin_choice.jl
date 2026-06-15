@@ -1,9 +1,10 @@
-@testitem "Linear solver choice testing" tags = [:lin_choice] begin
-    @testset "LUFactorization" begin
-        using CurveFit
-        using LinearSolve
-        using NonlinearSolveFirstOrder
+using CurveFit
+using Test
+using LinearSolve
+using NonlinearSolveFirstOrder
 
+@testset "Linear solver choice testing" begin
+    @testset "LUFactorization" begin
         X = collect(1.0:10.0)
         θ_true = [3.0, 2.0]
 
@@ -23,10 +24,6 @@
     end
 
     @testset "QRFactorization" begin
-        using CurveFit
-        using LinearSolve
-        using NonlinearSolveFirstOrder
-
         X = collect(1.0:10.0)
         θ_true = [3.0, 2.0]
 
@@ -46,10 +43,6 @@
     end
 
     @testset "CholeskyFactorization" begin
-        using CurveFit
-        using LinearSolve
-        using NonlinearSolveFirstOrder
-
         X = collect(1.0:10.0)
         θ_true = [3.0, 2.0]
 
