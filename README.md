@@ -26,8 +26,8 @@ CurveFit.jl provides the following fitting algorithms:
 
 - **Linear fitting**: `LinearCurveFitAlgorithm` - General linear fits with customizable transformations
 - **Log fitting**: `LogCurveFitAlgorithm` - Fits `y = a*log(x) + b`
-- **Power fitting**: `PowerCurveFitAlgorithm` - Fits `y = b*x^a`
-- **Exponential fitting**: `ExpCurveFitAlgorithm` - Fits `y = b*exp(a*x)`
+- **Power fitting**: `PowerCurveFitAlgorithm` - Fits `y = exp(a*log(x) + b)` (returns `(a, b)`; scale factor is `exp(b)`)
+- **Exponential fitting**: `ExpCurveFitAlgorithm` - Fits `y = exp(a*x + b)` (returns `(a, b)`; scale factor is `exp(b)`)
 - **Polynomial fitting**: `PolynomialFitAlgorithm` - Fits polynomials of arbitrary degree
 - **Rational polynomial fitting**: `RationalPolynomialFitAlgorithm` - Fits rational functions p(x)/q(x)
 - **Sum of exponentials**: `ExpSumFitAlgorithm` - Fits `y = k + p1*exp(λ1*t) + p2*exp(λ2*t) + ...`

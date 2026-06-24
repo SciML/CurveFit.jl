@@ -254,14 +254,18 @@ to fit. This algorithm does not support passing weights through `sigma` in
 We want to solve for `a` and `b` such that:
 
 ```math
-y = b x^a
+y = \exp(a \log(x) + b) = \exp(b)\, x^a
 ```
 
-This is equivalent to a linear fit in log-log space, i.e.,
+This is a linear fit in log-log space, i.e.,
 
 ```math
-\log(y) = a \log(x) + \log(b)
+\log(y) = a \log(x) + b
 ```
+
+The returned parameters are `(a, b)`, where `b` is the intercept in log space.
+The multiplicative scale factor `B` of the equivalent form ``y = B x^a`` is
+recovered as ``B = \exp(b)``.
 """
 PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
 
@@ -274,14 +278,18 @@ fit. This algorithm does not support passing weights through `sigma` in
 We want to solve for `a` and `b` such that:
 
 ```math
-y = b \exp(a x)
+y = \exp(a x + b)
 ```
 
-This is equivalent to a linear fit in log-linear space, i.e.,
+This is a linear fit in log-linear space, i.e.,
 
 ```math
-\log(y) = a x + \log(b)
+\log(y) = a x + b
 ```
+
+The returned parameters are `(a, b)`, where `b` is the intercept in log space.
+The multiplicative scale factor `B` of the equivalent form ``y = B \exp(a x)``
+is recovered as ``B = \exp(b)``.
 """
 ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
 

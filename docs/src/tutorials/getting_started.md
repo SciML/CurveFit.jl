@@ -112,7 +112,10 @@ println("Prediction at x=5: ", sol(5.0))
 
 ## Exponential Fitting
 
-Fit an exponential function `y = b * exp(a * x)`:
+Fit an exponential function `y = exp(a * x + b)`. The fit is performed in
+log-linear space, so `sol.u = (a, b)` returns the log-space intercept `b`; the
+multiplicative scale factor of the equivalent form `y = B * exp(a * x)` is
+`B = exp(b)`:
 
 ```@example exponential
 using CurveFit
@@ -132,7 +135,10 @@ println("Scale factor (b): ", exp(sol.u[2]))
 
 ## Power Law Fitting
 
-Fit a power law `y = b * x^a`:
+Fit a power law `y = exp(a * log(x) + b)`. The fit is performed in log-log
+space, so `sol.u = (a, b)` returns the log-space intercept `b`; the
+multiplicative scale factor of the equivalent form `y = B * x^a` is
+`B = exp(b)`:
 
 ```@example power
 using CurveFit
