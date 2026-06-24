@@ -107,23 +107,19 @@ function CommonSolve.solve!(cache::LinearRationalFitCache)
     )
     cache.linsolve_cache.A = cache.mat
     sol = solve!(cache.linsolve_cache)
-    resid = if sol.resid === nothing
-        # Linear problem: y ≈ p/q => y*q - p ≈ 0 (linearized residual)
-        # But StatsAPI expects y - p/q (nonlinear residual) or linearized?
-        # Standard definition is y - y_pred.
-        # So we should compute y - p(x)/q(x) using the fitted params.
+    # Linear problem: y ≈ p/q => y*q - p ≈ 0 (linearized residual)
+    # But StatsAPI expects y - p/q (nonlinear residual) or linearized?
+    # Standard definition is y - y_pred.
+    # So we should compute y - p(x)/q(x) using the fitted params.
 
-        # We need to construct the RationalPolynomial to eval it.
-        # Helper function from rationalfit.jl isn't easily accessible inside solve! without alloc.
-        # But we can reuse the logic from call:
-        rpoly = RationalPolynomial(
-            view(sol.u, 1:(cache.alg.num_degree + 1)),
-            vcat(one(eltype(sol.u)), view(sol.u, (cache.alg.num_degree + 2):length(sol.u)))
-        )
-        cache.prob.y .- rpoly.(cache.prob.x)
-    else
-        sol.resid
-    end
+    # We need to construct the RationalPolynomial to eval it.
+    # Helper function from rationalfit.jl isn't easily accessible inside solve! without alloc.
+    # But we can reuse the logic from call:
+    rpoly = RationalPolynomial(
+        view(sol.u, 1:(cache.alg.num_degree + 1)),
+        vcat(one(eltype(sol.u)), view(sol.u, (cache.alg.num_degree + 2):length(sol.u)))
+    )
+    resid = cache.prob.y .- rpoly.(cache.prob.x)
     return CurveFitSolution(cache.alg, sol.u, resid, cache.prob, sol.retcode)
 end
 
