@@ -7,12 +7,20 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## Unreleased
+## [v1.9.3]
 
 ### Fixed
-- Fixed parameter handling of [`ExpCurveFitAlgorithm`](@ref),
-  [`PowerCurveFitAlgorithm`](@ref), and [`KingCurveFitAlgorithm`](@ref) so they
-  don't return transformed parameters ([#112]).
+- [`LinearCurveFitAlgorithm`](@ref) will now automatically invert the intercept
+  when `yfun` is given to ensure that the returned parameters match the values
+  being fitted. Also affects [`ExpCurveFitAlgorithm`](@ref) and
+  [`PowerCurveFitAlgorithm`](@ref). *This is considered a bugfix rather than a
+  breaking change.*
+- Fixed the parameter handling and Jacobian of [`KingCurveFitAlgorithm`](@ref)
+  ([#112]).
+- Fixed the statistics methods for [`LinearCurveFitAlgorithm`](@ref) when a
+  transform is applied with `yfun` ([#112]). Previously the Jacobian for a
+  linear function would be computed on the residuals stored in the original
+  y-space.
 
 ## [v1.9.2] - 2026-06-24
 

@@ -102,11 +102,24 @@ end
 
 function jacobian(sol::CurveFitSolution{<:LinearCurveFitAlgorithm})
     x = sol.prob.x
-    xfun = sol.alg.xfun
-    J = Matrix{eltype(x)}(undef, length(x), 2)
-    J[:, 1] .= xfun.(x) # Slope
-    J[:, 2] .= 1        # Intercept
-    return J
+    alg = sol.alg
+    if alg.yfun === identity
+        # Linear model, compute Jacobian analytically
+        J = Matrix{eltype(x)}(undef, length(x), 2)
+        J[:, 1] .= alg.xfun.(x)
+        J[:, 2] .= 1
+        return J
+    else
+        # When there's a y-transform applied (e.g. power/exp fits) the residuals
+        # are in the original y-space so it would be incorrect to use the linear
+        # analytical Jacobian, instead we use DI.
+        a, b_stored = sol.u
+        u = [a, b_stored]
+        f_pred = u_curr -> begin
+            alg.yfun_inverse.(alg.yfun(u_curr[2]) .+ u_curr[1] .* alg.xfun.(x))
+        end
+        return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
+    end
 end
 
 function jacobian(sol::CurveFitSolution{<:PolynomialFitAlgorithm})

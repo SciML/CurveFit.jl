@@ -276,4 +276,30 @@ using LinearSolve
         @test size(vcov(sol_rat_nl)) == (3, 3)
         @test all(stderror(sol_rat_nl) .> 0)
     end
+
+    @testset "Jacobian in original y-space for transformed fits" begin
+        x = collect(1.0:10.0)
+
+        # Power fit: y = b * x^a  =>  ∂y/∂a = y*log(x),  ∂y/∂b = y/b
+        a_true, b_true = 1.5, 3.0
+        y_pow = @. b_true * x^a_true
+        sol_pow = solve(CurveFitProblem(x, y_pow), PowerCurveFitAlgorithm())
+        a, b = sol_pow.u
+        @test [a, b] ≈ [a_true, b_true]
+        y_pred = sol_pow.(x)
+        J_pow = CurveFit.jacobian(sol_pow)
+        @test J_pow[:, 1] ≈ y_pred .* log.(x)
+        @test J_pow[:, 2] ≈ y_pred ./ b
+
+        # Exp fit: y = b * exp(a*x)  =>  ∂y/∂a = y*x,  ∂y/∂b = y/b
+        a_true, b_true = 0.3, 2.0
+        y_exp = @. b_true * exp(a_true * x)
+        sol_exp = solve(CurveFitProblem(x, y_exp), ExpCurveFitAlgorithm())
+        a, b = sol_exp.u
+        @test [a, b] ≈ [a_true, b_true]
+        y_pred = sol_exp.(x)
+        J_exp = CurveFit.jacobian(sol_exp)
+        @test J_exp[:, 1] ≈ y_pred .* x
+        @test J_exp[:, 2] ≈ y_pred ./ b
+    end
 end
