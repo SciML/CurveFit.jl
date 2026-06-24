@@ -11,7 +11,7 @@ using Test
     sol = solve(prob, PowerCurveFitAlgorithm())
 
     @test sol.u[1] ≈ 0.8
-    @test sol.u[2] ≈ log(2.0)
+    @test sol.u[2] ≈ 2.0
 
     @testset for val in (0.0, 1.5, 4.5, 10.0)
         @test sol(val) ≈ fn(val)

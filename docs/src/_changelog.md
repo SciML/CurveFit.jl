@@ -7,7 +7,18 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## v[1.9.1] - 2026-04-25
+## Unreleased
+
+### Fixed
+- Fixed returned parameters of [`ExpCurveFitAlgorithm`](@ref) and
+  [`PowerCurveFitAlgorithm`](@ref) so they aren't log-transformed ([#112]).
+
+## [v1.9.2] - 2026-06-24
+
+### Changed
+- Various improvements to CI.
+
+## [v1.9.1] - 2026-04-25
 
 ### Fixed
 - Fixed support for `reinit!()`'ing nonlinear fit caches when using the new

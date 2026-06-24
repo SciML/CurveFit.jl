@@ -65,14 +65,15 @@ function CommonSolve.solve!(cache::GenericLinearFitCache)
         resid ./= cache.prob.sigma
     end
 
+    b_stored = cache.alg.yfun_inverse(b)
     return CurveFitSolution(
-        cache.alg, (a, b), resid, cache.prob, ReturnCode.Success
+        cache.alg, (a, b_stored), resid, cache.prob, ReturnCode.Success
     )
 end
 
 function (sol::CurveFitSolution{<:LinearCurveFitAlgorithm})(x)
     a, b = sol.u
-    return sol.alg.yfun_inverse.(b .+ a .* sol.alg.xfun.(x))
+    return sol.alg.yfun_inverse.(sol.alg.yfun(b) .+ a .* sol.alg.xfun.(x))
 end
 
 # Polynomial Fit

@@ -223,6 +223,10 @@ be converted to a linear fit in a specific function space by choosing appropriat
 `xfun` and `yfun`. The `yfun_inverse` is used to convert the fitted values back to the
 original space (can be specified by defining `InverseFunctions.inverse`).
 
+When `yfun` is not `identity`, `yfun_inverse` is applied to the fitted intercept before
+storing it, so that `sol.u = (a, b)` directly satisfies the original-space formula
+(e.g. `y = b * exp(a*x)` for [`ExpCurveFitAlgorithm`](@ref)).
+
 This algorithm does not support bounds constraints (`lb`/`ub`).
 """
 function LinearCurveFitAlgorithm(;
