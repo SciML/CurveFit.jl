@@ -215,6 +215,19 @@ function jacobian(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
     return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
 end
 
+function jacobian(sol::CurveFitSolution{<:KingCurveFitAlgorithm})
+    # King's law: U = t² where t = (E²−A)/B, so ∂U/∂A = −2t/B and ∂U/∂B = −2t²/B
+    A, B = sol.u
+    x = sol.prob.x
+    J = Matrix{eltype(x)}(undef, length(x), 2)
+    @inbounds for i in eachindex(x)
+        t = (x[i]^2 - A) / B
+        J[i, 1] = -2t / B    # ∂U/∂A
+        J[i, 2] = -2t^2 / B  # ∂U/∂B
+    end
+    return J
+end
+
 function jacobian(sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})
     # Modified King: E^2 = A + B * U^n
     # x corresponds to E (Voltage) - Model predicts x^2

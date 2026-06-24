@@ -13,6 +13,9 @@ using Test
     prob = CurveFitProblem(E, U)
     sol = solve(prob, KingCurveFitAlgorithm())
 
+    @test sol.u[1] ≈ A
+    @test sol.u[2] ≈ B
+
     @testset for val in range(minimum(E), stop = maximum(E), length = 10)
         @test sol(val) ≈ fn(val)
     end

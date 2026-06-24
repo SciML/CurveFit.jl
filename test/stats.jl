@@ -245,12 +245,7 @@ using LinearSolve
         x_data = collect(1.0:0.5:5.0)
         y_data = 2.0 .* x_data .^ 0.5 .+ 0.1
 
-        # 1. King Fit (Linear alias)
-        # y = A + B*sqrt(x) -> Linear fit with yfun=sqrt? No, King is xfun=abs2, yfun=sqrt?
-        # Wait, King is LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
-        # Check source: KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
-        # This implies sqrt(y) = A + B*x^2.
-        # This is strictly linear in transformed space, so vcov should work.
+        # 1. King Fit
         prob_king = CurveFitProblem(x_data, y_data)
         sol_king = solve(prob_king, KingCurveFitAlgorithm())
         @test size(vcov(sol_king)) == (2, 2)

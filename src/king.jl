@@ -5,9 +5,40 @@ function __king_fun!(resid, p, x)
     return nothing
 end
 
-# Common Solve Interface
+# Common Solve Interface for KingCurveFitAlgorithm
+@concrete struct KingFitCache <: AbstractCurveFitCache
+    prob <: CurveFitProblem
+    alg <: KingCurveFitAlgorithm
+    kwargs
+end
+
+function CommonSolve.init(prob::CurveFitProblem, alg::KingCurveFitAlgorithm; kwargs...)
+    @assert !is_nonlinear_problem(prob) "King's law fitting doesn't work with nlfunc specification."
+    @assert prob.u0 === nothing "King's law fit doesn't support initial guess (u0) specification"
+    sigma_not_supported(prob)
+    bounds_not_supported(prob)
+    return KingFitCache(prob, alg, kwargs)
+end
+
+function CommonSolve.solve!(cache::KingFitCache)
+    # Fit sqrt(U) = b + a*E^2, then recover King's constants A and B:
+    # sqrt(U) = -A/B + (1/B)*E^2  =>  B = 1/a, A = -b/a
+    b, a = __linear_fit_internal(abs2, cache.prob.x, sqrt, cache.prob.y, nothing)
+    B = 1 / a
+    A = -b * B
+    y_pred = ((cache.prob.x .^ 2 .- A) ./ B) .^ 2
+    resid = cache.prob.y .- y_pred
+    return CurveFitSolution(cache.alg, (A, B), resid, cache.prob, ReturnCode.Success)
+end
+
+function (sol::CurveFitSolution{<:KingCurveFitAlgorithm})(x::Number)
+    A, B = sol.u
+    return ((x^2 - A) / B)^2
+end
+
+# Common Solve Interface for ModifiedKingCurveFitAlgorithm
 @concrete struct ModifiedKingFitCache <: AbstractCurveFitCache
-    initial_guess_cache <: Union{Nothing, GenericLinearFitCache}
+    initial_guess_cache <: Union{Nothing, KingFitCache}
     nonlinear_cache
     prob <: CurveFitProblem
     alg <: ModifiedKingCurveFitAlgorithm

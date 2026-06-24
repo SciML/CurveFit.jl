@@ -295,7 +295,7 @@ ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
 Represents a king curve fitting problem where `x` and `y` are the data points to
 fit. This algorithm does not support passing weights through `sigma` in
 [`CurveFitProblem`](@ref). This algorithm does not support bounds constraints (`lb`/`ub`).
-We want to solve for `a` and `b` according to original King's law (1910) that represents
+We want to solve for `A` and `B` according to original King's law (1910) that represents
 the relationship between voltage (E) and velocity (U) in a hotwire anemometer:
 
 ```math
@@ -308,7 +308,7 @@ or
 x^2 = A + B y^{1/2}
 ```
 """
-KingCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = abs2, yfun = sqrt)
+struct KingCurveFitAlgorithm <: AbstractCurveFitAlgorithm end
 
 @doc doc"""
     ModifiedKingCurveFitAlgorithm(alg::Union{Nothing, AbstractNonlinearAlgorithm} = nothing)

@@ -10,8 +10,9 @@ Changelog](https://keepachangelog.com).
 ## Unreleased
 
 ### Fixed
-- Fixed returned parameters of [`ExpCurveFitAlgorithm`](@ref) and
-  [`PowerCurveFitAlgorithm`](@ref) so they aren't log-transformed ([#112]).
+- Fixed parameter handling of [`ExpCurveFitAlgorithm`](@ref),
+  [`PowerCurveFitAlgorithm`](@ref), and [`KingCurveFitAlgorithm`](@ref) so they
+  don't return transformed parameters ([#112]).
 
 ## [v1.9.2] - 2026-06-24
 
