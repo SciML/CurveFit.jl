@@ -3,21 +3,17 @@
 # --root-matrix, and by SciMLTesting's run_tests() folder-discovery mode in
 # runtests.jl. Each table key is a GROUP value passed to runtests.jl.
 #
-#   "Core"  -> the top-level test/*.jl files (the functional fits plus the
-#              ExplicitImports check). Runs on 1/lts/pre.
-#   "nopre" -> the test/nopre/ folder (Aqua), which is brittle on prereleases,
-#              so it runs only on 1/lts. `in_all = false` keeps it out of a
-#              local GROUP=All aggregate run.
-#
-# This replaces the former TestItemRunner tag split (GROUP=All ran every
-# @testitem except :nopre; GROUP=nopre ran only the :nopre-tagged Aqua item):
-# the same tests run under the same two (group x version) CI cells.
+#   "Core" -> the top-level test/*.jl files (the functional fits). Runs on
+#             1/lts/pre.
+#   "QA"   -> the test/qa/ folder (SciMLTesting run_qa: Aqua + ExplicitImports),
+#             which is brittle on prereleases, so it runs only on 1/lts.
+#             QA is always excluded from a local GROUP=All aggregate run.
 
 [Core]
 versions = ["1", "lts", "pre"]
 os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
 
-[nopre]
+[QA]
 in_all = false
 versions = ["1", "lts"]
 os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
