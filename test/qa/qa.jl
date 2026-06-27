@@ -5,9 +5,7 @@ run_qa(
     explicit_imports = true,
     ei_kwargs = (;
         all_explicit_imports_are_public = (;
-            ignore = (
-                :AbstractLinearAlgorithm, :AbstractNonlinearAlgorithm,  # SciMLBase
-            ),
+            ignore = (),
         ),
         all_qualified_accesses_are_public = (;
             ignore = (
