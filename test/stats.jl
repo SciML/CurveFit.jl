@@ -139,6 +139,34 @@ using Distributions: TDist, quantile
         @test all(stderror(sol_rat) .> 0)
     end
 
+    @testset "Custom yfun_inverse vcov (delta method)" begin
+        # Non-exp transform: sqrt(y) = β0 + β1*x  =>  y = (β0 + β1*x)^2.
+        # The delta factor d(b)/d(β0) = 2β0 ≠ b, so this catches an exp-only or
+        # missing delta-method bug that the power/exp tests would not.
+        x = collect(1.0:10.0)
+        β0, β1 = 2.0, 0.5
+        noise = [0.05, -0.04, 0.03, -0.02, 0.06, -0.05, 0.01, -0.03, 0.04, -0.01]
+        Y = β0 .+ β1 .* x .+ noise
+        y = Y .^ 2
+
+        alg = LinearCurveFitAlgorithm(; yfun = sqrt, yfun_inverse = z -> z^2)
+        sol = solve(CurveFitProblem(x, y), alg)
+
+        # Check that the fit succeeded
+        @test SciMLBase.successful_retcode(sol)
+        @test sol.u[1] ≈ β1 atol = 1.0e-2
+        @test sol.u[2] ≈ β0^2 atol = 1.0e-1
+
+        # Reference: plain linear OLS on (x, sqrt(y)) gives the transformed-space
+        # covariance for (slope β1, intercept β0); delta-method it through b = β0^2.
+        sol_lin = solve(CurveFitProblem(x, sqrt.(y)), LinearCurveFitAlgorithm())
+        Vlin = vcov(sol_lin)
+        d = 2 * sol_lin.u[2]   # = 2β0
+        Vref = [Vlin[1, 1] d * Vlin[1, 2]; d * Vlin[2, 1] d^2 * Vlin[2, 2]]
+
+        @test vcov(sol) ≈ Vref
+    end
+
     @testset "Explicit API Coverage (ExpSum)" begin
         # Test ExpSumFitAlgorithm explicitly to ensure jacobian works
         # y = k + p*exp(lam*x)

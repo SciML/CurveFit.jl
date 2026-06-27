@@ -323,6 +323,26 @@ The covariance is then rescaled by reduced χ² (i.e. `mse(sol)`) so that `sigma
 acts as a relative weight. Pass `absolute_sigma = true` to skip this rescaling
 when `sigma` carries absolute physical uncertainties (analogous to scipy's
 `curve_fit(absolute_sigma=true)`).
+
+!!! note "Fits estimated in a transformed space"
+    Some fits estimate their coefficients by ordinary least squares (OLS) in a
+    *transformed* space rather than in original `y`-space:
+
+    - [`PowerCurveFitAlgorithm`](@ref) and [`ExpCurveFitAlgorithm`](@ref) fit a
+      straight line in log space, minimizing relative rather than absolute error.
+    - [`KingCurveFitAlgorithm`](@ref) fits `sqrt(U) = b + a·E²` by OLS and
+      recovers `(A, B)` from `(b, a)`. [`ModifiedKingCurveFitAlgorithm`](@ref)
+      is not affected since it's a regular nonlinear fit.
+    - Any [`LinearCurveFitAlgorithm`](@ref) with `yfun ≠ identity`.
+
+    To keep the reported uncertainty consistent with how the coefficients were
+    actually estimated, the covariance is computed in that transformed space and
+    then mapped back to the original parameters via the delta method, rather than
+    from the original-space Jacobian used above.
+
+    Note that [`residuals`](@ref), [`rss`](@ref), and [`mse`](@ref) remain in
+    original `y`-space as fit diagnostics, so for these fits `mse(sol)` is *not*
+    the variance scaling behind `vcov`.
 """
 function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
     J = jacobian(sol)
@@ -349,6 +369,73 @@ function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
     end
 
     return covar
+end
+
+# Covariance for fits whose coefficients are estimated by ordinary least squares
+# in a *transformed* space but whose parameters are reported in original
+# space. Computing `vcov` from the original-space Jacobian (as the generic
+# method does) gives a Gauss–Newton covariance of a different, nonlinear fit,
+# not the uncertainty of the estimator that actually produced `sol.u`. Instead
+# we form the transformed-space least-squares covariance `σ²·(XᵀX)⁻¹` for the
+# straight line `Y = β0 + β1·t` and delta-method it to the stored
+# parameterization via `param_map(β0, β1) -> [p1, p2]`.
+function _transformed_ols_vcov(t, Y, β0, β1, param_map, absolute_sigma::Bool)
+    n = length(t)
+    T = float(promote_type(eltype(t), eltype(Y)))
+    st = sum(t)
+    stt = sum(abs2, t)
+    det = n * stt - st^2
+
+    # Residual variance in transformed space (sigma is unsupported for these
+    # fits, so this is the unweighted estimate). absolute_sigma assumes unit
+    # variance instead, mirroring the generic method.
+    σ2 = if absolute_sigma
+        one(T)
+    else
+        rss_t = sum(i -> abs2(Y[i] - (β0 + β1 * t[i])), eachindex(t))
+        rss_t / (n - 2)
+    end
+
+    # σ²·(XᵀX)⁻¹ for (β0 intercept, β1 slope)
+    Σβ = Matrix{T}(undef, 2, 2)
+    Σβ[1, 1] = σ2 * stt / det          # Var(β0)
+    Σβ[2, 2] = σ2 * n / det            # Var(β1)
+    Σβ[1, 2] = Σβ[2, 1] = -σ2 * st / det  # Cov(β0, β1)
+
+    # Delta method: G = ∂(p1, p2)/∂(β0, β1); Cov(p) = G·Σβ·Gᵀ.
+    g = β -> param_map(β[1], β[2])
+    G = DifferentiationInterface.jacobian(g, AutoForwardDiff(), [β0, β1])
+    return G * Σβ * G'
+end
+
+# vcov() for linear fits of a transformed model, falls back to the default
+# implementation if there's no y-transform.
+function StatsAPI.vcov(sol::CurveFitSolution{<:LinearCurveFitAlgorithm}; absolute_sigma::Bool = false)
+    alg = sol.alg
+    if alg.yfun === identity
+        return @invoke StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma)
+    end
+
+    a, b_stored = sol.u
+    t = alg.xfun.(sol.prob.x)
+    Y = alg.yfun.(sol.prob.y)
+    β0 = alg.yfun(b_stored)  # intercept
+    β1 = a                   # slope
+    # Generic in yfun_inverse so custom inverses work.
+    param_map = (β0, β1) -> [β1, alg.yfun_inverse(β0)]
+    return _transformed_ols_vcov(t, Y, β0, β1, param_map, absolute_sigma)
+end
+
+# King's law: OLS of `sqrt(U) = b + a·E²` (intercept b, slope a), with stored
+# params (A, B) = (-b/a, 1/a). Same transformed-space estimator as power/exp.
+function StatsAPI.vcov(sol::CurveFitSolution{<:KingCurveFitAlgorithm}; absolute_sigma::Bool = false)
+    A, B = sol.u
+    t = abs2.(sol.prob.x)   # E²
+    Y = sqrt.(sol.prob.y)   # sqrt(U)
+    a = 1 / B               # slope
+    b = -A / B              # intercept (A = -b·B ⇒ b = -A/B)
+    param_map = (β0, β1) -> [-β0 / β1, 1 / β1]   # (A, B)
+    return _transformed_ols_vcov(t, Y, b, a, param_map, absolute_sigma)
 end
 
 """

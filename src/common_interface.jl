@@ -266,6 +266,13 @@ This is equivalent to a linear fit in log-log space, i.e.,
 ```math
 \log(y) = a \log(x) + \log(b)
 ```
+
+Because the fit is performed in log space, it minimizes *relative* (rather than
+absolute) error: a fixed fractional deviation counts the same at small and large
+`y`. This is a different estimator from a nonlinear least-squares fit of the same
+model (which minimizes absolute error), so the coefficients and their
+uncertainties will generally differ. [`vcov`](@ref) accounts for this when
+computing the uncertainty of `(a, b)`.
 """
 PowerCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = log, yfun = log)
 
@@ -286,6 +293,13 @@ This is equivalent to a linear fit in log-linear space, i.e.,
 ```math
 \log(y) = a x + \log(b)
 ```
+
+Because the fit is performed in log space, it minimizes *relative* (rather than
+absolute) error: a fixed fractional deviation counts the same at small and large
+`y`. This is a different estimator from a nonlinear least-squares fit of the same
+model (which minimizes absolute error), so the coefficients and their
+uncertainties will generally differ. [`vcov`](@ref) accounts for this when
+computing the uncertainty of `(a, b)`.
 """
 ExpCurveFitAlgorithm() = LinearCurveFitAlgorithm(; xfun = identity, yfun = log)
 

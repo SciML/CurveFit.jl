@@ -7,7 +7,21 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v1.9.3]
+## [v1.9.4] - 2026-06-27
+
+### Changed
+- Previously nonlinear fits would compute the residuals as `ŷ − y`, they are now
+  computed as `y − ŷ` to be consistent with the linear fits ([#114]).
+
+### Fixed
+- Corrected [`margin_error()`](@ref) to use the residual degrees of freedom
+  rather than the degrees of freedom of the model ([#114]).
+- Fixed the covariance calculation in [`vcov()`](@ref) to correctly handle the
+  uncertainties produced by linear fits of a transformed nonlinear model
+  (e.g. from [`PowerCurveFitAlgorithm`](@ref), [`ExpCurveFitAlgorithm`](@ref),
+  and [`KingCurveFitAlgorithm`](@ref)) by using the delta method ([#114]).
+
+## [v1.9.3] - 2026-06-26
 
 ### Fixed
 - [`LinearCurveFitAlgorithm`](@ref) will now automatically invert the intercept
