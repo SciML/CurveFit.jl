@@ -20,7 +20,7 @@ end
 
 # Out-of-place
 function (nlf::NonlinearFunctionWrapper{false})(p, X)
-    resid = nlf.f(p, X) .- nlf.target
+    resid = nlf.target .- nlf.f(p, X)
 
     if !isnothing(nlf.sigma)
         resid ./= nlf.sigma
@@ -32,7 +32,7 @@ end
 # In-place
 function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     nlf.f(resid, p, X)
-    resid .-= nlf.target
+    resid .= nlf.target .- resid
 
     if !isnothing(nlf.sigma)
         resid ./= nlf.sigma
