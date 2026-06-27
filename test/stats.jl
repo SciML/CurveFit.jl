@@ -4,6 +4,7 @@ using StatsAPI
 using NonlinearSolveFirstOrder
 using LinearAlgebra
 using LinearSolve
+using Distributions: TDist, quantile
 
 @testset "StatsAPI Integration" begin
     @testset "Linear Fit" begin
@@ -91,6 +92,11 @@ using LinearSolve
         # True params are roughly 2.0 and 1.0. CI should cover them or be close.
         # Just checking structure and non-error
         @test cis[1][1] < cis[1][2]
+
+        # margin_error() should use the residual dof (n - p = 3) rather than the
+        # parameter dof (p = 2).
+        t_resid = quantile(TDist(3), 0.975)
+        @test margin_error(sol) ≈ stderror(sol) .* t_resid
 
         # Test isconverged
         @test isconverged(sol)
