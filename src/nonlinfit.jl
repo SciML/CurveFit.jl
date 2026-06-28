@@ -8,6 +8,8 @@ SciMLBase.isinplace(::NonlinearFunctionWrapper{iip}) where {iip} = iip
 
 _unwrap_nonlinear_function(f::NonlinearFunctionWrapper) = f
 _unwrap_nonlinear_function(f::NonlinearSolveBase.AutoSpecializeCallable) = _unwrap_nonlinear_function(f.orig)
+_unwrap_nonlinear_function(f::NonlinearSolveBase.BoundedWrapper) = _unwrap_nonlinear_function(f.f.f)
+_unwrap_nonlinear_function(f) = f
 
 # If `target` is nothing then we can completely ignore sigma
 __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, _) = f
@@ -45,6 +47,7 @@ end
 @concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     cache
+    u0
     alg
     kwargs
 end
@@ -52,6 +55,7 @@ end
 function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, sigma = nothing, kwargs...)
     if !isnothing(u0)
         kwargs = (; kwargs..., u0)
+        copyto!(cache.u0, u0)
     end
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
@@ -92,31 +96,59 @@ function CommonSolve.init(
             alg.alg;
             kwargs...
         ),
+        copy(prob.u0),
         alg,
         kwargs
     )
 end
 
 function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
+    inner = _get_cache(cache)
+    x = inner.p
     sol = solve!(cache.cache)
-    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol)
+
+    y = cache.prob.y
+    sigma = cache.prob.sigma
+
+    wrapped_f = _unwrap_nonlinear_function(inner.prob.f.f)
+    if wrapped_f isa NonlinearFunctionWrapper
+        y = wrapped_f.target
+        sigma = wrapped_f.sigma
+    end
+
+    # Reconstruct the problem with the current settings. We can't copy
+    # cache.prob because the cache may have been reinit()'d in which case
+    # cache.prob will be out of date and will give wrong results for the stats
+    # functions that use it.
+    prob = CurveFitProblem(
+        x,
+        y,
+        sigma,
+        cache.prob.nlfunc,
+        cache.u0,
+        cache.prob.lb,
+        cache.prob.ub
+    )
+    return CurveFitSolution(cache.alg, sol.u, sol.resid, prob, sol.retcode, sol)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
     return sol.prob.nlfunc(sol.u, x)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", cache::GenericNonlinearCurveFitCache)
+function _get_cache(cache::GenericNonlinearCurveFitCache)
     inner = cache.cache
-
-    # Get the actual working cache
-    is_polyalg = inner isa NonlinearSolveBase.NonlinearSolvePolyAlgorithmCache
-    current_cache = if is_polyalg
+    return if inner isa NonlinearSolveBase.NonlinearSolvePolyAlgorithmCache
         inner.caches[inner.current]
     else
         inner
     end
+end
 
+function Base.show(io::IO, ::MIME"text/plain", cache::GenericNonlinearCurveFitCache)
+    inner = cache.cache
+    is_polyalg = inner isa NonlinearSolveBase.NonlinearSolvePolyAlgorithmCache
+    current_cache = _get_cache(cache)
 
     context = (:compact => true, :limit => true)
 
