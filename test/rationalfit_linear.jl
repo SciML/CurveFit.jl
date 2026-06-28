@@ -15,4 +15,6 @@ using LinearSolve, LinearAlgebra
     @testset for val in (0.0, 1.5, 4.5, 10.0)
         @test sol(val) ≈ r(val) atol = 1.0e-8
     end
+
+    @test sol(x) ≈ y atol = 1.0e-8
 end

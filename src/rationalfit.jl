@@ -150,12 +150,13 @@ function CommonSolve.solve!(cache::NonlinearRationalFitCache)
     )
 end
 
-function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x::Number)
-    return RationalPolynomial(
+function (sol::CurveFitSolution{<:RationalPolynomialFitAlgorithm})(x)
+    rpoly = RationalPolynomial(
         view(sol.u, 1:(sol.alg.num_degree + 1)),
         vcat(
             one(eltype(sol.u)),
             view(sol.u, (sol.alg.num_degree + 2):(length(sol.u)))
         )
-    )(x)
+    )
+    return rpoly.(x)
 end

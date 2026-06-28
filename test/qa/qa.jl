@@ -9,7 +9,8 @@ run_qa(
         ),
         all_qualified_accesses_are_public = (;
             ignore = (
-                :AutoSpecializeCallable, :NonlinearSolvePolyAlgorithmCache,  # NonlinearSolveBase
+                :AutoSpecializeCallable, :BoundedWrapper,                    # NonlinearSolveBase
+                :NonlinearSolvePolyAlgorithmCache,                           # NonlinearSolveBase
                 :Utils, :get_fu, :clean_sprint_struct,                       # NonlinearSolveBase(.Utils)
                 :rtoldefault,                                                # Base
             ),

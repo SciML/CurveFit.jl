@@ -222,8 +222,15 @@ function CommonSolve.solve!(cache::ExpSumFitCache)
     )
 end
 
-function (sol::CurveFitSolution{<:ExpSumFitAlgorithm})(x)
+function __eval_expsum(sol::CurveFitSolution{<:ExpSumFitAlgorithm}, x)
     (; k, p, λ) = sol.u
-    y = k .+ sum(exp.(x * λ') .* p'; dims = 2)
-    return real.(vec(y))
+    y = k[]
+    @inbounds for i in eachindex(p, λ)
+        y += p[i] * exp(λ[i] * x)
+    end
+    return real(y)
+end
+
+function (sol::CurveFitSolution{<:ExpSumFitAlgorithm})(x)
+    return __eval_expsum.(Ref(sol), x)
 end

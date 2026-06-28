@@ -24,6 +24,8 @@ using Test
     @test sol.u.λ ≈ [-3, -2, 0.5] rtol = 5.0e-7
     @test sol.u.p ≈ [4, 2, 5] rtol = 9.0e-6
     @test sol.u.k[] ≈ -1 rtol = 2.0e-6
+    @test sol(x) ≈ y rtol = 2.0e-6
+    @test sol(x[1]) ≈ y[1] rtol = 2.0e-6
 
     # decay curve
     fs, ts, ω₀, τ = 20.0e3, 0.2, 6283.2, 0.0322

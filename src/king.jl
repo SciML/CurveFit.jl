@@ -31,9 +31,9 @@ function CommonSolve.solve!(cache::KingFitCache)
     return CurveFitSolution(cache.alg, (A, B), resid, cache.prob, ReturnCode.Success)
 end
 
-function (sol::CurveFitSolution{<:KingCurveFitAlgorithm})(x::Number)
+function (sol::CurveFitSolution{<:KingCurveFitAlgorithm})(x)
     A, B = sol.u
-    return ((x^2 - A) / B)^2
+    return @. ((x^2 - A) / B)^2
 end
 
 # Common Solve Interface for ModifiedKingCurveFitAlgorithm
@@ -108,6 +108,6 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
     return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
 end
 
-function (sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})(x::Number)
-    return ((x .^ 2 .- sol.u[1]) ./ sol.u[2]) .^ (1 ./ sol.u[3])
+function (sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})(x)
+    return @. ((x^2 - sol.u[1]) / sol.u[2])^(1 / sol.u[3])
 end

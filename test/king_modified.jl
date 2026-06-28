@@ -28,6 +28,8 @@ using NonlinearSolveFirstOrder
         @testset for val in range(minimum(E), stop = maximum(E), length = 10)
             @test sol(val) ≈ fn(val) atol = 1.0e-8
         end
+
+        @test sol(E) ≈ U atol = 1.0e-8
     end
 
     # Test bounds: constrain n to [0.0, 0.3], which excludes the true value of 0.42

@@ -7,7 +7,26 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v1.9.4] - 2026-06-27
+## [v1.10.0] - 2026-06-28
+
+### Added
+- Added support for passing arrays to solutions of
+  [`KingCurveFitAlgorithm`](@ref), [`ModifiedKingCurveFitAlgorithm`](@ref), and
+  [`RationalPolynomialFitAlgorithm`](@ref) ([#115]).
+
+### Fixed
+- Fixed the statistics functions for [`ExpSumFitAlgorithm`](@ref) to handle
+  `withconst=true` correctly ([#115]).
+- Fixed `sol(x::Number)` of [`ExpSumFitAlgorithm`](@ref) to return scalars for
+  consistency with the other solutions ([#115]).
+- Previously the original [`CurveFitProblem`](@ref) from a nonlinear fit was
+  always copied into the solution, even after calling `reinit!(cache,
+  ...)`. This meant that the statistics functions like [`margin_error()`](@ref)
+  etc would incorrectly return values for the original problem rather than the
+  one actually solved. Now `sol.prob` is reconstructed using the correct inputs
+  ([#115]).
+
+## [v1.9.4] - 2026-06-28
 
 ### Changed
 - Previously nonlinear fits would compute the residuals as `ŷ − y`, they are now

@@ -20,6 +20,8 @@ using Test
         @test sol(val) ≈ fn(val)
     end
 
+    @test sol(E) ≈ U
+
     # Sigma not supported
     prob_sigma = CurveFitProblem(E, U; sigma = ones(length(U)))
     @test_throws AssertionError solve(prob_sigma, KingCurveFitAlgorithm())
