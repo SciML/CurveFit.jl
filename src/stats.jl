@@ -56,13 +56,27 @@ function StatsAPI.nobs(sol::CurveFitSolution)
     return length(sol.prob.y)
 end
 
+# Return the positions in `sol.u` that are held fixed. These coefficients
+# are still reported by `coef` for a consistent parameter layout, but they don't
+# have a degree of freedom and contribute a zero row/column to the covariance.
+fixed_param_indices(::CurveFitSolution) = ()
+function fixed_param_indices(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
+    # `k` is always stored as the first coefficient, but it's only fitted when
+    # `withconst` is true; otherwise it's held at 0.
+    return sol.alg.withconst ? () : (1,)
+end
+
 """
     dof(sol::CurveFitSolution)
 
 Return the number of degrees of freedom of the model.
+
+Note that this counts the fitted coefficients. Coefficients that are held fixed
+(e.g. the constant of [`ExpSumFitAlgorithm`](@ref) with `withconst = false`) are
+excluded.
 """
 function StatsAPI.dof(sol::CurveFitSolution)
-    return length(sol.u)
+    return length(sol.u) - length(fixed_param_indices(sol))
 end
 
 """
@@ -193,29 +207,13 @@ function jacobian(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
     # We know the sizes from sol.alg (n, m is irrelevant here).
 
     n = sol.alg.n
-    withconst = sol.alg.withconst
 
     function model_expsum(u_curr, x_val)
-        # Extract parameters from flat vector u_curr
-        # Layout: k (if withconst), p (n), λ (n)
-        # Check src/expsumfit.jl backing: (; k, p, λ)
-        # NamedArrayPartition stores them sequentially.
-
-        idx = 1
-        if withconst
-            k = u_curr[idx]
-            idx += 1
-        else
-            k = zero(eltype(u_curr))
-            # k doesn't advance idx
-        end
-
-        # p is next n
-        p = view(u_curr, idx:(idx + n - 1))
-        idx += n
-
-        # λ is next n
-        λ = view(u_curr, idx:(idx + n - 1))
+        # `sol.u` always stores the constant first, regardless of `withconst`
+        # (when `withconst` is false it's just held at 0). Layout: k, p (n), λ (n).
+        k = u_curr[1]
+        p = view(u_curr, 2:(n + 1))
+        λ = view(u_curr, (n + 2):(2n + 1))
 
         # Computation: k + sum(p .* exp.(λ .* x))
         # Use sum generator to avoid allocation
@@ -344,6 +342,13 @@ when `sigma` carries absolute physical uncertainties (analogous to scipy's
     original `y`-space as fit diagnostics, so for these fits `mse(sol)` is *not*
     the variance scaling behind `vcov`.
 """
+# (JᵀJ)⁻¹ via QR, which is more numerically stable than inv(J'J).
+function _vcov_from_jacobian(J)
+    R = LinearAlgebra.qr(J).R
+    Rinv = inv(R)
+    return Rinv * Rinv'
+end
+
 function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
     J = jacobian(sol)
 
@@ -351,18 +356,18 @@ function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
         J ./= sol.prob.sigma
     end
 
-    # Compute the covariance matrix from the QR decomposition
-    # This is numerically more stable than inv(J'J)
-    Q, R = LinearAlgebra.qr(J)
-
-    # Check for rank deficiency or other issues?
-    # LinearAlgebra.qr usually handles full rank.
-    # R is upper triangular. Rinv = inv(R)
-
-    # Ideally checking rank(R) would be good, but assuming J is full rank for now.
-
-    Rinv = inv(R)
-    covar = Rinv * Rinv'
+    fixed = fixed_param_indices(sol)
+    if isempty(fixed)
+        covar = _vcov_from_jacobian(J)
+    else
+        # Fixed coefficients are known exactly: drop them from the inversion
+        # (their Jacobian columns would make JᵀJ singular) and scatter the
+        # free-parameter covariance back, leaving zero rows/columns for them.
+        free = setdiff(axes(J, 2), fixed)
+        covar_free = _vcov_from_jacobian(J[:, free])
+        covar = zeros(eltype(covar_free), size(J, 2), size(J, 2))
+        covar[free, free] .= covar_free
+    end
 
     if !absolute_sigma
         covar .*= mse(sol)

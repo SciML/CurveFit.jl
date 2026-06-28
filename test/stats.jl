@@ -180,6 +180,19 @@ using Distributions: TDist, quantile
         @test size(vcov(sol)) == (3, 3) # k, p, lam
         @test all(stderror(sol) .> 0)
 
+        # Test with `withconst=false`
+        sol_nc = solve(prob, ExpSumFitAlgorithm(; n = 1, withconst = false))
+        @test length(coef(sol_nc)) == 3      # k, p, lam still reported
+        @test coef(sol_nc)[1] == 0           # k held at 0
+        @test dof(sol_nc) == 2               # only p, lam are fitted
+        @test dof_residual(sol_nc) == nobs(sol_nc) - 2
+        @test size(vcov(sol_nc)) == (3, 3)
+        @test vcov(sol_nc)[1, :] == zeros(3) # zero row/column for fixed k
+        @test vcov(sol_nc)[:, 1] == zeros(3)
+        @test stderror(sol_nc)[1] == 0
+        @test all(stderror(sol_nc)[2:end] .> 0)
+        @test confint(sol_nc)[1] == (0.0, 0.0)
+
         # Modified King Fit (E^2 = A + B * U^n)
         # x corresponds to E (Voltage) in Jacobian logic, but input data order is (U, E^2)?
         # User creates CurveFitProblem(x, y).
