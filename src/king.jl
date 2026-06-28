@@ -105,7 +105,15 @@ function CommonSolve.solve!(cache::ModifiedKingFitCache)
     )
 
     sol = solve(nonlinear_prob, __FallbackNonlinearFitAlgorithm(cache.alg.alg); cache.kwargs...)
-    return CurveFitSolution(cache.alg, sol.u, sol.resid, cache.prob, sol.retcode, sol.original)
+
+    # The inner solve fits E² = A + B·Uⁿ, so its residual `A + B·Uⁿ − E²` is a
+    # difference of E² values. We instead report `residuals` as a difference of
+    # velocities, `U − Û`, so they match `fitted`/`sol(x)` (i.e.
+    # `residuals == prob.y .- fitted`). `vcov` rebuilds the E² residual it needs
+    # from `sol.u`.
+    A, B, n = sol.u
+    resid = @. cache.prob.y - ((cache.prob.x^2 - A) / B)^(1 / n)
+    return CurveFitSolution(cache.alg, sol.u, resid, cache.prob, sol.retcode, sol.original)
 end
 
 function (sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})(x)

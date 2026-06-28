@@ -443,6 +443,24 @@ function StatsAPI.vcov(sol::CurveFitSolution{<:KingCurveFitAlgorithm}; absolute_
     return _transformed_ols_vcov(t, Y, b, a, param_map, absolute_sigma)
 end
 
+# Modified King fits E² = A + B·Uⁿ by nonlinear least squares, so its covariance
+# is the Gauss–Newton form `σ²·(JᵀJ)⁻¹` built from the E² residual it minimized.
+# `residuals`/`mse` are reported as velocities, so we rebuild that E² residual
+# here instead of reusing `mse(sol)`.
+function StatsAPI.vcov(sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm}; absolute_sigma::Bool = false)
+    covar = _vcov_from_jacobian(jacobian(sol))
+
+    if !absolute_sigma
+        A, B, n = sol.u
+        E, U = sol.prob.x, sol.prob.y
+        resid_fitspace = @. A + B * U^n - E^2
+        σ2 = sum(abs2, resid_fitspace) / dof_residual(sol)
+        covar .*= σ2
+    end
+
+    return covar
+end
+
 """
     stderror(sol::CurveFitSolution; absolute_sigma = false, rtol = NaN, atol = 0)
 

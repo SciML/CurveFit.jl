@@ -208,6 +208,8 @@ using Distributions: TDist, quantile
 
         @test size(vcov(sol_mod_king)) == (3, 3)
         @test all(stderror(sol_mod_king) .> 0)
+        # Residuals are reported in velocity space, consistent with fitted()
+        @test residuals(sol_mod_king) ≈ y_k .- fitted(sol_mod_king)
     end
 
 
