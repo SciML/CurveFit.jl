@@ -7,6 +7,17 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.10.1] - 2026-06-29
+
+### Fixed
+- Fixed the residuals space of [`ModifiedKingCurveFitAlgorithm`](@ref),
+  previously they were in E² space but now they're calculated in velocity space
+  such that they're consistent with the standard definition of `residuals = y -
+  ŷ` ([#116]).
+- The `reinit!()` method for [`NonlinearCurveFitProblem`](@ref)'s will now
+  explicitly throw an error when invalid inputs are given (e.g. arrays of the
+  wrong length) to prevent internal corruption ([#115]).
+
 ## [v1.10.0] - 2026-06-28
 
 ### Added

@@ -54,23 +54,29 @@ end
 
 function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, sigma = nothing, kwargs...)
     if !isnothing(u0)
+        @assert size(u0) == size(cache.u0) "reiniting `u0` must keep the same size"
         kwargs = (; kwargs..., u0)
         copyto!(cache.u0, u0)
     end
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
     if !isnothing(x)
+        @assert size(x) == size(_get_cache(cache).p) "reiniting `x` must keep the same size"
         kwargs = (; kwargs..., p = x)
     end
 
     # Update `y` inplace
     wrapper = _unwrap_nonlinear_function(cache.cache.prob.f.f)
     if !isnothing(y)
+        @assert wrapper isa NonlinearFunctionWrapper "cannot reinit `y` for a problem created without a `y`"
+        @assert size(y) == size(wrapper.target) "reiniting `y` must keep the same size"
         copyto!(wrapper.target, y)
     end
 
     # Update `sigma` inplace
     if !isnothing(sigma)
+        @assert wrapper isa NonlinearFunctionWrapper && !isnothing(wrapper.sigma) "cannot reinit `sigma` for a problem created without a `sigma`"
+        @assert size(sigma) == size(wrapper.sigma) "reiniting `sigma` must keep the same size"
         copyto!(wrapper.sigma, sigma)
     end
 
