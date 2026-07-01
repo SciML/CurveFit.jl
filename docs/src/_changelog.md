@@ -7,7 +7,7 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v1.10.1] - 2026-06-29
+## [v1.10.1] - 2026-07-01
 
 ### Fixed
 - Fixed the residuals space of [`ModifiedKingCurveFitAlgorithm`](@ref),
@@ -16,7 +16,9 @@ Changelog](https://keepachangelog.com).
   ŷ` ([#116]).
 - The `reinit!()` method for [`NonlinearCurveFitProblem`](@ref)'s will now
   explicitly throw an error when invalid inputs are given (e.g. arrays of the
-  wrong length) to prevent internal corruption ([#115]).
+  wrong length) to prevent internal corruption ([#116]).
+- Fixed the residuals and statistics calculations for polynomial fits,
+  previously they were computed from corrupted data ([#116]).
 
 ## [v1.10.0] - 2026-06-28
 

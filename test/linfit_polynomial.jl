@@ -21,6 +21,8 @@ using LinearSolve
         @test sol(val) ≈ fn(val)
     end
 
+    @test sol.resid ≈ y .- sol.(x)
+
     @testset "ill-conditioned" begin
         true_coeffs = [80.0, -5.0e-18, -7.0e-20, -1.0e-36]
         x1 = 1.0e10 .* (0:0.1:5)
