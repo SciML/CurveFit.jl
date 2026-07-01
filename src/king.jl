@@ -39,7 +39,6 @@ end
 # Common Solve Interface for ModifiedKingCurveFitAlgorithm
 @concrete struct ModifiedKingFitCache <: AbstractCurveFitCache
     initial_guess_cache <: Union{Nothing, KingFitCache}
-    nonlinear_cache
     prob <: CurveFitProblem
     alg <: ModifiedKingCurveFitAlgorithm
     kwargs
@@ -66,21 +65,7 @@ function CommonSolve.init(
         init(nobounds_prob, KingCurveFitAlgorithm(); kwargs...)
     end
 
-    nonlinear_cache = init(
-        NonlinearCurveFitProblem(
-            NonlinearFunction{true}(
-                __king_fun!;
-                resid_prototype = similar(prob.x)
-            ),
-            similar(prob.x, 3),
-            stack((prob.x, prob.y); dims = 1),
-            nothing;
-            lb = prob.lb, ub = prob.ub
-        ),
-        __FallbackNonlinearFitAlgorithm(alg.alg);
-        kwargs...
-    )
-    return ModifiedKingFitCache(initial_guess_cache, nonlinear_cache, prob, alg, kwargs)
+    return ModifiedKingFitCache(initial_guess_cache, prob, alg, kwargs)
 end
 
 function CommonSolve.solve!(cache::ModifiedKingFitCache)

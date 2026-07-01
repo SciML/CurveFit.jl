@@ -193,23 +193,18 @@ using Distributions: TDist, quantile
         @test all(stderror(sol_nc)[2:end] .> 0)
         @test confint(sol_nc)[1] == (0.0, 0.0)
 
-        # Modified King Fit (E^2 = A + B * U^n)
-        # x corresponds to E (Voltage) in Jacobian logic, but input data order is (U, E^2)?
-        # User creates CurveFitProblem(x, y).
-        # King assumes (Voltage, Velocity).
-        # My implementation: x=E, y=U in Jacobian.
-        # But in verify script I passed (U, E^2).
-        # So I will replicate verify script logic here.
+        # Modified King Fit: E² = A + B·Uⁿ, with x = E (voltage), y = U (velocity)
         A_true = 1.0; B_true = 2.0; n_true = 0.5
-        x_k = collect(1.0:0.5:5.0)
-        y_k = @. A_true + B_true * x_k^n_true
-        prob_mod_king = CurveFitProblem(x_k, y_k)
+        U = collect(1.0:0.5:5.0)
+        E = sqrt.(A_true .+ B_true .* U .^ n_true)
+        prob_mod_king = CurveFitProblem(E, U)
         sol_mod_king = solve(prob_mod_king, ModifiedKingCurveFitAlgorithm())
 
+        @test sol_mod_king.u ≈ [A_true, B_true, n_true]
         @test size(vcov(sol_mod_king)) == (3, 3)
         @test all(stderror(sol_mod_king) .> 0)
         # Residuals are reported in velocity space, consistent with fitted()
-        @test residuals(sol_mod_king) ≈ y_k .- fitted(sol_mod_king)
+        @test residuals(sol_mod_king) ≈ U .- fitted(sol_mod_king)
     end
 
 
