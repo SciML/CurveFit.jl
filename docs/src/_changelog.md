@@ -19,6 +19,9 @@ Changelog](https://keepachangelog.com).
   wrong length) to prevent internal corruption ([#116]).
 - Fixed the residuals and statistics calculations for polynomial fits,
   previously they were computed from corrupted data ([#116]).
+- Solving with [`ExpSumFitAlgorithm`](@ref) will no longer modify the input x/y
+  arrays, and will return a vector of residuals instead of a `(n, 1)` matrix
+  ([#116]).
 
 ## [v1.10.0] - 2026-06-28
 
