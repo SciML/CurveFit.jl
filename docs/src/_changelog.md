@@ -22,6 +22,9 @@ Changelog](https://keepachangelog.com).
 - Solving with [`ExpSumFitAlgorithm`](@ref) will no longer modify the input x/y
   arrays, and will return a vector of residuals instead of a `(n, 1)` matrix
   ([#116]).
+- Fixed various statistics methods when using residual-only functions with
+  [`NonlinearCurveFitProblem`](@ref), as well as adding support for `sigma` with
+  such such functions ([#116])
 
 ## [v1.10.0] - 2026-06-28
 

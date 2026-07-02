@@ -99,8 +99,10 @@ optimization problem is solved:
 \argmin_u ~ \left\| f(u, x) - y \right\|_2
 ```
 
-If `y` is `nothing`, then it is treated as a zero vector. `f` is a generic Julia function or
-ideally a `NonlinearFunction` from [`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
+If `y` is `nothing`, then it is treated as a zero vector and `f` is expected to
+return residuals directly. `f` is a generic Julia function or ideally a
+`NonlinearFunction` from
+[`SciMLBase.jl`](https://github.com/SciML/SciMLBase.jl).
 
 Lower and upper bounds on the parameters can be passed through `lb` and `ub` keyword
 arguments. These should be arrays with the same length as `u0`.

@@ -53,7 +53,7 @@ end
 Return the number of observations used in the fit.
 """
 function StatsAPI.nobs(sol::CurveFitSolution)
-    return length(sol.prob.y)
+    return length(sol.resid)
 end
 
 # Return the positions in `sol.u` that are held fixed. These coefficients
