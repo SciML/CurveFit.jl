@@ -49,4 +49,22 @@ using NonlinearSolveBase: NonlinearSolveBase
     @test cache.cache.prob.f.f isa NonlinearSolveBase.AutoSpecializeCallable
     CurveFit.reinit!(cache; u0 = [1.0, 1.0, 1.0], x, y)
     @test solve!(cache).u ≈ a0 atol = 1.0e-7
+
+    # Test reinit!() input validation with an out-of-place function so the
+    # `y=nothing` cache can be constructed.
+    g(a, x) = @. a[1] + a[2] * x^a[3]
+    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
+
+    # Size changes are rejected
+    @test_throws AssertionError CurveFit.reinit!(cache; u0 = [1.0, 1.0])
+    @test_throws AssertionError CurveFit.reinit!(cache; x = 1.0:5.0)
+    @test_throws AssertionError CurveFit.reinit!(cache; y = y[1:5])
+    @test_throws AssertionError CurveFit.reinit!(cache; sigma = sigma[1:5])
+
+    # Can't reinit a variable the problem was created without
+    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y))
+    @test_throws AssertionError CurveFit.reinit!(cache; sigma)
+
+    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x))
+    @test_throws AssertionError CurveFit.reinit!(cache; y)
 end

@@ -48,7 +48,6 @@ end
 
 @concrete struct NonlinearRationalFitCache <: AbstractCurveFitCache
     initial_guess_cache <: Union{Nothing, LinearRationalFitCache}
-    nonlinear_cache
     prob <: CurveFitProblem
     alg <: RationalPolynomialFitAlgorithm
     kwargs
@@ -82,23 +81,7 @@ function CommonSolve.init(
             A, init(LinearProblem(A, prob.y), alg.alg; kwargs...), prob, alg, kwargs
         )
     end
-    nonlinear_cache = init(
-        NonlinearCurveFitProblem(
-            NonlinearFunction{true}(
-                __rational_fit_residual!(alg.num_degree, alg.den_degree);
-                resid_prototype = similar(prob.x)
-            ),
-            similar(prob.x, coeffs_length),
-            prob.x,
-            prob.y;
-            lb = prob.lb, ub = prob.ub
-        ),
-        __FallbackNonlinearFitAlgorithm(alg.alg);
-        kwargs...
-    )
-    return NonlinearRationalFitCache(
-        initial_guess_cache, nonlinear_cache, prob, alg, kwargs
-    )
+    return NonlinearRationalFitCache(initial_guess_cache, prob, alg, kwargs)
 end
 
 function CommonSolve.solve!(cache::LinearRationalFitCache)

@@ -11,17 +11,22 @@ _unwrap_nonlinear_function(f::NonlinearSolveBase.AutoSpecializeCallable) = _unwr
 _unwrap_nonlinear_function(f::NonlinearSolveBase.BoundedWrapper) = _unwrap_nonlinear_function(f.f.f)
 _unwrap_nonlinear_function(f) = f
 
-# If `target` is nothing then we can completely ignore sigma
-__wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, _) = f
+__wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, ::Nothing) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target, sigma)
     internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, sigma, f.f)
     @set! f.f = internal_f
-    @set! f.resid_prototype = similar(target)
+    @set! f.resid_prototype = similar(isnothing(target) ? sigma : target)
     return f
 end
 
 # Out-of-place
 function (nlf::NonlinearFunctionWrapper{false})(p, X)
+    # `target` is only nothing for residual-style problems (y = nothing), in
+    # which case the wrapper exists purely to apply `sigma`.
+    if isnothing(nlf.target)
+        return nlf.f(p, X) ./ nlf.sigma
+    end
+
     resid = nlf.target .- nlf.f(p, X)
 
     if !isnothing(nlf.sigma)
@@ -34,8 +39,10 @@ end
 # In-place
 function (nlf::NonlinearFunctionWrapper{true})(resid, p, X)
     nlf.f(resid, p, X)
-    resid .= nlf.target .- resid
 
+    if !isnothing(nlf.target)
+        resid .= nlf.target .- resid
+    end
     if !isnothing(nlf.sigma)
         resid ./= nlf.sigma
     end
@@ -54,23 +61,29 @@ end
 
 function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x = nothing, y = nothing, sigma = nothing, kwargs...)
     if !isnothing(u0)
+        @assert size(u0) == size(cache.u0) "reiniting `u0` must keep the same size"
         kwargs = (; kwargs..., u0)
         copyto!(cache.u0, u0)
     end
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
     if !isnothing(x)
+        @assert size(x) == size(_get_cache(cache).p) "reiniting `x` must keep the same size"
         kwargs = (; kwargs..., p = x)
     end
 
     # Update `y` inplace
     wrapper = _unwrap_nonlinear_function(cache.cache.prob.f.f)
     if !isnothing(y)
+        @assert wrapper isa NonlinearFunctionWrapper && !isnothing(wrapper.target) "cannot reinit `y` for a problem created without a `y`"
+        @assert size(y) == size(wrapper.target) "reiniting `y` must keep the same size"
         copyto!(wrapper.target, y)
     end
 
     # Update `sigma` inplace
     if !isnothing(sigma)
+        @assert wrapper isa NonlinearFunctionWrapper && !isnothing(wrapper.sigma) "cannot reinit `sigma` for a problem created without a `sigma`"
+        @assert size(sigma) == size(wrapper.sigma) "reiniting `sigma` must keep the same size"
         copyto!(wrapper.sigma, sigma)
     end
 
@@ -133,6 +146,11 @@ function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
 end
 
 function (sol::CurveFitSolution{<:__FallbackNonlinearFitAlgorithm})(x)
+    if SciMLBase.isinplace(sol.prob) && x isa AbstractArray
+        out = similar(sol.resid, length(x))
+        sol.prob.nlfunc(out, sol.u, x)
+        return out
+    end
     return sol.prob.nlfunc(sol.u, x)
 end
 

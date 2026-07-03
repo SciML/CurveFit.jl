@@ -28,3 +28,25 @@ using SciMLBase
     @test err_weighted < err_no_weight
     @test SciMLBase.successful_retcode(sol_weighted)
 end
+
+@testset "Weighted residual-style problem (y = nothing)" begin
+    x = collect(1.0:10.0)
+    y = @. 2.0 + 3.0 * x + 0.1 * sin(x)
+    sigma = collect(range(0.5, 2.0; length = length(x)))
+    u0 = [1.0, 1.0]
+
+    pred(u, x) = @. u[1] + u[2] * x
+    sol_pred = solve(NonlinearCurveFitProblem(pred, u0, x, y, sigma))
+
+    # Residual-style problems (y = nothing) must apply sigma the same way as
+    # the equivalent prediction-style problem.
+    resid_oop(u, x) = y .- pred(u, x)
+    sol_oop = solve(NonlinearCurveFitProblem(resid_oop, u0, x, nothing, sigma))
+    @test sol_oop.u ≈ sol_pred.u
+    @test sol_oop.resid ≈ sol_pred.resid
+
+    resid_iip(resid, u, x) = resid .= y .- pred(u, x)
+    sol_iip = solve(NonlinearCurveFitProblem(resid_iip, u0, x, nothing, sigma))
+    @test sol_iip.u ≈ sol_pred.u
+    @test sol_iip.resid ≈ sol_pred.resid
+end

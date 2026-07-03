@@ -53,7 +53,7 @@ end
 Return the number of observations used in the fit.
 """
 function StatsAPI.nobs(sol::CurveFitSolution)
-    return length(sol.prob.y)
+    return length(sol.resid)
 end
 
 # Return the positions in `sol.u` that are held fixed. These coefficients
@@ -224,19 +224,6 @@ function jacobian(sol::CurveFitSolution{<:ExpSumFitAlgorithm})
     f_pred = u_curr -> map(i -> model_expsum(u_curr, x[i]), range)
 
     return DifferentiationInterface.jacobian(f_pred, AutoForwardDiff(), u)
-end
-
-function jacobian(sol::CurveFitSolution{<:KingCurveFitAlgorithm})
-    # King's law: U = t² where t = (E²−A)/B, so ∂U/∂A = −2t/B and ∂U/∂B = −2t²/B
-    A, B = sol.u
-    x = sol.prob.x
-    J = Matrix{eltype(x)}(undef, length(x), 2)
-    @inbounds for i in eachindex(x)
-        t = (x[i]^2 - A) / B
-        J[i, 1] = -2t / B    # ∂U/∂A
-        J[i, 2] = -2t^2 / B  # ∂U/∂B
-    end
-    return J
 end
 
 function jacobian(sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm})
@@ -441,6 +428,24 @@ function StatsAPI.vcov(sol::CurveFitSolution{<:KingCurveFitAlgorithm}; absolute_
     b = -A / B              # intercept (A = -b·B ⇒ b = -A/B)
     param_map = (β0, β1) -> [-β0 / β1, 1 / β1]   # (A, B)
     return _transformed_ols_vcov(t, Y, b, a, param_map, absolute_sigma)
+end
+
+# Modified King fits E² = A + B·Uⁿ by nonlinear least squares, so its covariance
+# is the Gauss–Newton form `σ²·(JᵀJ)⁻¹` built from the E² residual it minimized.
+# `residuals`/`mse` are reported as velocities, so we rebuild that E² residual
+# here instead of reusing `mse(sol)`.
+function StatsAPI.vcov(sol::CurveFitSolution{<:ModifiedKingCurveFitAlgorithm}; absolute_sigma::Bool = false)
+    covar = _vcov_from_jacobian(jacobian(sol))
+
+    if !absolute_sigma
+        A, B, n = sol.u
+        E, U = sol.prob.x, sol.prob.y
+        resid_fitspace = @. A + B * U^n - E^2
+        σ2 = sum(abs2, resid_fitspace) / dof_residual(sol)
+        covar .*= σ2
+    end
+
+    return covar
 end
 
 """

@@ -193,21 +193,18 @@ using Distributions: TDist, quantile
         @test all(stderror(sol_nc)[2:end] .> 0)
         @test confint(sol_nc)[1] == (0.0, 0.0)
 
-        # Modified King Fit (E^2 = A + B * U^n)
-        # x corresponds to E (Voltage) in Jacobian logic, but input data order is (U, E^2)?
-        # User creates CurveFitProblem(x, y).
-        # King assumes (Voltage, Velocity).
-        # My implementation: x=E, y=U in Jacobian.
-        # But in verify script I passed (U, E^2).
-        # So I will replicate verify script logic here.
+        # Modified King Fit: E² = A + B·Uⁿ, with x = E (voltage), y = U (velocity)
         A_true = 1.0; B_true = 2.0; n_true = 0.5
-        x_k = collect(1.0:0.5:5.0)
-        y_k = @. A_true + B_true * x_k^n_true
-        prob_mod_king = CurveFitProblem(x_k, y_k)
+        U = collect(1.0:0.5:5.0)
+        E = sqrt.(A_true .+ B_true .* U .^ n_true)
+        prob_mod_king = CurveFitProblem(E, U)
         sol_mod_king = solve(prob_mod_king, ModifiedKingCurveFitAlgorithm())
 
+        @test sol_mod_king.u ≈ [A_true, B_true, n_true]
         @test size(vcov(sol_mod_king)) == (3, 3)
         @test all(stderror(sol_mod_king) .> 0)
+        # Residuals are reported in velocity space, consistent with fitted()
+        @test residuals(sol_mod_king) ≈ U .- fitted(sol_mod_king)
     end
 
 
@@ -286,6 +283,28 @@ using Distributions: TDist, quantile
 
         @test residuals(sol) ≈ residuals(sol; weighted = false) ./ sigma
         @test vcov(sol) ≈ vcov(sol; absolute_sigma = true) .* mse(sol)
+    end
+
+    @testset "Residual-style problems (y = nothing)" begin
+        x = collect(1.0:10.0)
+        y = @. 2.0 + 3.0 * x + 0.1 * sin(x)
+
+        f_oop(u, x) = @. u[1] + u[2] * x - $y
+        f_iip(resid, u, x) = @. resid = u[1] + u[2] * x - $y
+        fn_iip = NonlinearFunction{true}(f_iip; resid_prototype = similar(x))
+
+        # Smoke test that the stats functions handle problems without a `y`
+        for f in (f_oop, fn_iip)
+            sol = solve(NonlinearCurveFitProblem(f, [1.0, 1.0], x))
+
+            @test nobs(sol) == length(x)
+            @test dof_residual(sol) == length(x) - 2
+            @test residuals(sol) == sol.resid
+            @test predict(sol) ≈ residuals(sol)
+            @test mse(sol) ≈ rss(sol) / dof_residual(sol)
+            @test length(stderror(sol)) == 2
+            @test all(lo < c < hi for (c, (lo, hi)) in zip(coef(sol), confint(sol)))
+        end
     end
 
     @testset "Extended Algorithm Test Coverage" begin

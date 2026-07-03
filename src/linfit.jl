@@ -106,8 +106,9 @@ function CommonSolve.solve!(cache::PolynomialFitCache)
     __vandermondepoly!(cache.vandermondepoly_cache, cache.prob.x, cache.alg.degree)
     cache.linsolve_cache.A = cache.vandermondepoly_cache
     sol = solve!(cache.linsolve_cache)
-    # Always compute residuals manually as LinearSolve may return incorrect residuals
-    resid = cache.prob.y .- cache.vandermondepoly_cache * sol.u
+    # Compute residuals from the fitted polynomial. We can't reuse
+    # vandermondepoly_cache here as the in-place factorization overwrites it.
+    resid = cache.prob.y .- evalpoly.(cache.prob.x, Ref(sol.u))
     return CurveFitSolution(cache.alg, sol.u, resid, cache.prob, sol.retcode)
 end
 

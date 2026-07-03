@@ -137,6 +137,9 @@ end
     prob <: CurveFitProblem
     alg
     kwargs
+    # Scaled working copies of prob.x/prob.y, the inputs are never modified
+    x <: AbstractVector
+    y <: AbstractVector
     Y <: AbstractMatrix
     S <: AbstractMatrix
     A <: AbstractVector
@@ -162,6 +165,8 @@ function CommonSolve.init(
         prob,
         alg,
         kwargs,
+        similar(prob.x),
+        similar(prob.y),
         similar(prob.x, nY, mY),
         similar(prob.x, nY, alg.n - 1),
         similar(prob.x, mY),
@@ -174,27 +179,24 @@ end
 
 # TODO: allocations in this function aren't optimized
 function CommonSolve.solve!(cache::ExpSumFitCache)
-    sc = __expsum_scale!(cache.prob.x, cache.prob.y)
+    copyto!(cache.x, cache.prob.x)
+    copyto!(cache.y, cache.prob.y)
+    sc = __expsum_scale!(cache.x, cache.y)
 
     __expsum_fill_Y!(
-        cache.Y, cache.S, cache.coeff, cache.prob.x, cache.prob.y, cache.alg.n, cache.alg.m
+        cache.Y, cache.S, cache.coeff, cache.x, cache.y, cache.alg.n, cache.alg.m
     )
 
     λ = __expsum_solve_λ(
-        cache.Y, cache.A, cache.Ā, cache.prob.y, cache.alg.n, cache.alg.m
+        cache.Y, cache.A, cache.Ā, cache.y, cache.alg.n, cache.alg.m
     )
 
     X = isreal(λ) ? cache.Xr : cache.Xc
-    __expsum_fill_X!(cache.prob.x, λ, X, cache.alg.n)
+    __expsum_fill_X!(cache.x, λ, X, cache.alg.n)
 
     qrX = qr!(X)
-    p = qrX \ cache.prob.y
+    p = qrX \ cache.y
     isreal(p) && (p = real(p))
-
-    for i in eachindex(cache.prob.x, cache.prob.y)
-        cache.prob.x[i] *= sc.x
-        cache.prob.y[i] *= sc.y
-    end
 
     for i in eachindex(p)
         p[i] *= sc.y
@@ -214,7 +216,7 @@ function CommonSolve.solve!(cache::ExpSumFitCache)
     end
     backing = (; k, p, λ)
 
-    y_pred = k .+ sum(exp.(cache.prob.x * λ') .* p'; dims = 2)
+    y_pred = k .+ vec(sum(exp.(cache.prob.x * λ') .* p'; dims = 2))
     resid = cache.prob.y .- y_pred
 
     return CurveFitSolution(
