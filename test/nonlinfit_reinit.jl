@@ -67,4 +67,16 @@ using NonlinearSolveBase: NonlinearSolveBase
 
     cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x))
     @test_throws AssertionError CurveFit.reinit!(cache; y)
+
+    # reinit!() must not modify the user-provided arrays
+    x = collect(1.0:10.0)
+    y = g([3.0, 2.0, 0.7], x)
+    sigma = ones(length(y))
+    x_orig, y_orig, sigma_orig = copy(x), copy(y), copy(sigma)
+    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
+    sol = solve!(cache)
+    CurveFit.reinit!(cache; x = x .+ 1, y = y .+ 1, sigma = sigma .+ 1)
+    @test x == x_orig
+    @test y == y_orig
+    @test sigma == sigma_orig
 end

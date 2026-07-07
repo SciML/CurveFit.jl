@@ -36,7 +36,7 @@ include("expsumfit.jl")
 include("stats.jl")
 
 # Exported functions
-export CurveFitProblem, NonlinearCurveFitProblem, ScalarModel
+export CurveFitProblem, NonlinearCurveFitProblem, ScalarModel, CurveFitAliasSpecifier
 
 export LinearCurveFitAlgorithm, LogCurveFitAlgorithm, PowerCurveFitAlgorithm,
     ExpCurveFitAlgorithm, PolynomialFitAlgorithm

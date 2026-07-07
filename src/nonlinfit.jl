@@ -6,11 +6,6 @@ end
 
 SciMLBase.isinplace(::NonlinearFunctionWrapper{iip}) where {iip} = iip
 
-_unwrap_nonlinear_function(f::NonlinearFunctionWrapper) = f
-_unwrap_nonlinear_function(f::NonlinearSolveBase.AutoSpecializeCallable) = _unwrap_nonlinear_function(f.orig)
-_unwrap_nonlinear_function(f::NonlinearSolveBase.BoundedWrapper) = _unwrap_nonlinear_function(f.f.f)
-_unwrap_nonlinear_function(f) = f
-
 __wrap_nonlinear_function(f::NonlinearFunction, ::Nothing, ::Nothing) = f
 function __wrap_nonlinear_function(f::NonlinearFunction, target, sigma)
     internal_f = NonlinearFunctionWrapper{SciMLBase.isinplace(f)}(target, sigma, f.f)
@@ -54,6 +49,9 @@ end
 @concrete struct GenericNonlinearCurveFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
     cache
+    x <: AbstractArray
+    y <: Union{AbstractArray, Nothing}
+    sigma <: Union{AbstractArray, Nothing}
     u0
     alg
     kwargs
@@ -68,23 +66,23 @@ function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x
 
     # x becomes `p` (parameter) in the NonlinearLeastSquaresProblem
     if !isnothing(x)
-        @assert size(x) == size(_get_cache(cache).p) "reiniting `x` must keep the same size"
-        kwargs = (; kwargs..., p = x)
+        @assert size(x) == size(cache.x) "reiniting `x` must keep the same size"
+        copyto!(cache.x, x)
+        kwargs = (; kwargs..., p = cache.x)
     end
 
     # Update `y` inplace
-    wrapper = _unwrap_nonlinear_function(cache.cache.prob.f.f)
     if !isnothing(y)
-        @assert wrapper isa NonlinearFunctionWrapper && !isnothing(wrapper.target) "cannot reinit `y` for a problem created without a `y`"
-        @assert size(y) == size(wrapper.target) "reiniting `y` must keep the same size"
-        copyto!(wrapper.target, y)
+        @assert !isnothing(cache.y) "cannot reinit `y` for a problem created without a `y`"
+        @assert size(y) == size(cache.y) "reiniting `y` must keep the same size"
+        copyto!(cache.y, y)
     end
 
     # Update `sigma` inplace
     if !isnothing(sigma)
-        @assert wrapper isa NonlinearFunctionWrapper && !isnothing(wrapper.sigma) "cannot reinit `sigma` for a problem created without a `sigma`"
-        @assert size(sigma) == size(wrapper.sigma) "reiniting `sigma` must keep the same size"
-        copyto!(wrapper.sigma, sigma)
+        @assert !isnothing(cache.sigma) "cannot reinit `sigma` for a problem created without a `sigma`"
+        @assert size(sigma) == size(cache.sigma) "reiniting `sigma` must keep the same size"
+        copyto!(cache.sigma, sigma)
     end
 
     reinit!(cache.cache; kwargs...)
@@ -93,11 +91,18 @@ function SciMLBase.reinit!(cache::GenericNonlinearCurveFitCache; u0 = nothing, x
 end
 
 function CommonSolve.init(
-        prob::CurveFitProblem, alg::__FallbackNonlinearFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::__FallbackNonlinearFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
     )
     @assert is_nonlinear_problem(prob) "Nonlinear curve fitting only works with nonlinear \
                                         problems"
     @assert prob.u0 !== nothing "Nonlinear curve fitting requires an initial guess (u0)"
+
+    # By default the input arrays are copied into the cache so that reinit!'ing
+    # the cache (which mutates them in place) doesn't overwrite the user's data.
+    prob = _alias_inputs(
+        prob, alias; default_x = false, default_y = false, default_sigma = false
+    )
 
     return GenericNonlinearCurveFitCache(
         prob,
@@ -109,36 +114,28 @@ function CommonSolve.init(
             alg.alg;
             kwargs...
         ),
-        copy(prob.u0),
+        prob.x,
+        prob.y,
+        prob.sigma,
+        prob.u0,
         alg,
         kwargs
     )
 end
 
 function CommonSolve.solve!(cache::GenericNonlinearCurveFitCache)
-    inner = _get_cache(cache)
-    x = inner.p
     sol = solve!(cache.cache)
 
-    y = cache.prob.y
-    sigma = cache.prob.sigma
-
-    wrapped_f = _unwrap_nonlinear_function(inner.prob.f.f)
-    if wrapped_f isa NonlinearFunctionWrapper
-        y = wrapped_f.target
-        sigma = wrapped_f.sigma
-    end
-
-    # Reconstruct the problem with the current settings. We can't copy
+    # Reconstruct the problem with the current settings. We can't use
     # cache.prob because the cache may have been reinit()'d in which case
     # cache.prob will be out of date and will give wrong results for the stats
     # functions that use it.
     prob = CurveFitProblem(
-        x,
-        y,
-        sigma,
+        cache.x,
+        cache.y,
+        cache.sigma,
         cache.prob.nlfunc,
-        cache.u0,
+        copy(cache.u0),
         cache.prob.lb,
         cache.prob.ub
     )

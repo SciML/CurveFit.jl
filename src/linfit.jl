@@ -41,7 +41,10 @@ end
     alg <: LinearCurveFitAlgorithm
 end
 
-function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; kwargs...)
+function CommonSolve.init(
+        prob::CurveFitProblem, alg::LinearCurveFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
+    )
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
     @assert prob.u0 === nothing "Linear fit doesn't support initial guess (u0) \
@@ -50,6 +53,7 @@ function CommonSolve.init(prob::CurveFitProblem, alg::LinearCurveFitAlgorithm; k
         supported when yfun ≠ identity (e.g., PowerCurveFitAlgorithm, ExpCurveFitAlgorithm)"
     bounds_not_supported(prob)
 
+    prob = _alias_inputs(prob, alias)
     return GenericLinearFitCache(prob, kwargs, alg)
 end
 
@@ -86,7 +90,8 @@ end
 end
 
 function CommonSolve.init(
-        prob::CurveFitProblem, alg::PolynomialFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::PolynomialFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
     )
     @assert !is_nonlinear_problem(prob) "Linear curve fitting only works with linear \
                                          problems"
@@ -95,6 +100,7 @@ function CommonSolve.init(
     sigma_not_supported(prob)
     bounds_not_supported(prob)
 
+    prob = _alias_inputs(prob, alias)
     vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
     linsolve_cache = init(
         LinearProblem(vandermondepoly_cache, prob.y), alg.linsolve_algorithm; kwargs...

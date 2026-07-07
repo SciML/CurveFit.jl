@@ -150,13 +150,15 @@ end
 end
 
 function CommonSolve.init(
-        prob::CurveFitProblem, alg::ExpSumFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::ExpSumFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
     )
     @assert !is_nonlinear_problem(prob) "Exponential sum fitting only works with linear \
                                          problems"
     sigma_not_supported(prob)
     bounds_not_supported(prob)
 
+    prob = _alias_inputs(prob, alias)
     T = eltype(prob.x)
 
     len = length(prob.x)

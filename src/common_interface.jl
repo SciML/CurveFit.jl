@@ -458,6 +458,20 @@ end
 Represents the solution to a curve fitting problem. This is a callable struct and
 can be used to evaluate the solution at a point. Exact evaluation mechanism depends on the
 algorithm used to solve the problem.
+
+!!! note "Aliasing semantics"
+    The `x`/`y`/`sigma` arrays in `sol.prob` alias the solver cache's internal
+    arrays rather than copies of them. For nonlinear fits those internal arrays
+    are, by default, copies of the problems input arrays. A subsequent `reinit!`
+    of the cache mutates them in place, so a solution returned beforehand will
+    reflect the new data. Copy the `sol.prob` fields if you need a stable
+    snapshot.
+
+    Whether the cache aliases or copies the input `x`/`y`/`sigma`/`u0` arrays can
+    be controlled by passing a [`CurveFitAliasSpecifier`](@ref) as the `alias`
+    keyword to `init`/`solve`. By default `x`/`y`/`sigma` are aliased and `u0` is
+    copied for the linear fits, while the nonlinear fits copy all of them so that
+    `reinit!` doesn't overwrite the users input.
 """
 @concrete struct CurveFitSolution <: AbstractCurveFitSolution
     alg <: AbstractCurveFitAlgorithm
@@ -489,6 +503,68 @@ function Base.show(io::IO, ::MIME"text/plain", sol::CurveFitSolution)
 end
 
 SciMLBase.successful_retcode(sol::CurveFitSolution) = SciMLBase.successful_retcode(sol.retcode)
+
+
+"""
+    CurveFitAliasSpecifier(; alias_x = nothing, alias_y = nothing, alias_sigma = nothing, alias_u0 = nothing, alias = nothing)
+
+Holds information on what variables to alias when solving a curve fit problem.
+Conforms to the [`SciMLBase.AbstractAliasSpecifier`](@extref) interface.
+
+When a keyword argument is `nothing`, the default behaviour is used.
+
+### Keywords
+
+* `alias_x::Union{Bool, Nothing}`: alias the `x` array.
+* `alias_y::Union{Bool, Nothing}`: alias the `y` array.
+* `alias_sigma::Union{Bool, Nothing}`: alias the `sigma` array.
+* `alias_u0::Union{Bool, Nothing}`: alias the `u0` array.
+* `alias::Union{Bool, Nothing}`: sets all fields of the `CurveFitAliasSpecifier` to `alias`.
+"""
+struct CurveFitAliasSpecifier <: SciMLBase.AbstractAliasSpecifier
+    alias_x::Union{Bool, Nothing}
+    alias_y::Union{Bool, Nothing}
+    alias_sigma::Union{Bool, Nothing}
+    alias_u0::Union{Bool, Nothing}
+
+    function CurveFitAliasSpecifier(;
+            alias_x = nothing, alias_y = nothing,
+            alias_sigma = nothing, alias_u0 = nothing,
+            alias = nothing
+        )
+        return if isnothing(alias)
+            new(alias_x, alias_y, alias_sigma, alias_u0)
+        elseif alias
+            new(true, true, true, true)
+        elseif !alias
+            new(false, false, false, false)
+        end
+    end
+end
+
+_maybe_alias(::Nothing, ::Union{Bool, Nothing}, ::Bool) = nothing
+
+function _maybe_alias(x::AbstractArray, flag::Union{Bool, Nothing}, default::Bool)
+    return @something(flag, default) ? x : copyto!(similar(x), x)
+end
+
+# Return a `CurveFitProblem` whose input arrays are aliased or copied according
+# to `alias` (falling back to `default_*` when `alias = nothing`).
+function _alias_inputs(
+        prob::CurveFitProblem, alias::CurveFitAliasSpecifier;
+        default_x::Bool = true, default_y::Bool = true,
+        default_sigma::Bool = true, default_u0::Bool = false
+    )
+    return CurveFitProblem(
+        _maybe_alias(prob.x, alias.alias_x, default_x),
+        _maybe_alias(prob.y, alias.alias_y, default_y),
+        _maybe_alias(prob.sigma, alias.alias_sigma, default_sigma),
+        prob.nlfunc,
+        _maybe_alias(prob.u0, alias.alias_u0, default_u0),
+        prob.lb,
+        prob.ub
+    )
+end
 
 # Common Solve Interface
 """

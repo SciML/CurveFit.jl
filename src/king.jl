@@ -12,11 +12,15 @@ end
     kwargs
 end
 
-function CommonSolve.init(prob::CurveFitProblem, alg::KingCurveFitAlgorithm; kwargs...)
+function CommonSolve.init(
+        prob::CurveFitProblem, alg::KingCurveFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
+    )
     @assert !is_nonlinear_problem(prob) "King's law fitting doesn't work with nlfunc specification."
     @assert prob.u0 === nothing "King's law fit doesn't support initial guess (u0) specification"
     sigma_not_supported(prob)
     bounds_not_supported(prob)
+    prob = _alias_inputs(prob, alias)
     return KingFitCache(prob, alg, kwargs)
 end
 
@@ -45,12 +49,14 @@ end
 end
 
 function CommonSolve.init(
-        prob::CurveFitProblem, alg::ModifiedKingCurveFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::ModifiedKingCurveFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
     )
     @assert !is_nonlinear_problem(prob) "Modified King's law fitting doesn't work with \
                                          nlfunc specification."
     sigma_not_supported(prob)
 
+    prob = _alias_inputs(prob, alias)
     initial_guess_cache = if prob.u0 !== nothing
         nothing
     else
