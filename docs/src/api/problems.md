@@ -29,3 +29,13 @@ type that allows defining scalar models.
 ```@docs
 ScalarModel
 ```
+
+## Aliasing
+For the sake of performance it's sometimes desirable to allow aliasing input
+arrays rather than making copies of them. The solvers in CurveFit.jl attempt to
+make reasonable defaults, but it's possible to customize the aliasing defaults
+with [`CurveFitAliasSpecifier`](@ref).
+
+```@docs
+CurveFitAliasSpecifier
+```

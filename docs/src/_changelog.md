@@ -7,6 +7,19 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v1.11.0] - 2026-07-08
+
+### Added
+- Implemented [`CurveFitAliasSpecifier`](@ref) so that it's possible to specify
+  which arrays are aliased or copied when creating a [`CurveFitProblem`](@ref)
+  ([#117]).
+
+### Fixed
+- Changed the solver for [`NonlinearCurveFitProblem`](@ref) to (by default) make
+  copies of the input arrays into its internal cache so that the original input
+  arrays won't be overwritten if `reinit!(cache; x, y, sigma)` is called
+  ([#117]). This can be controlled with [`CurveFitAliasSpecifier`](@ref)
+
 ## [v1.10.1] - 2026-07-01
 
 ### Fixed

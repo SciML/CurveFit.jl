@@ -1,5 +1,6 @@
 import Changelog
 using Documenter
+using DocumenterInterLinks
 using CurveFit
 using CommonSolve
 using NonlinearSolve: NonlinearSolve
@@ -21,6 +22,10 @@ Changelog.generate(
     repo = "SciML/CurveFit.jl"
 )
 
+links = InterLinks(
+    "SciMLBase" => "https://docs.sciml.ai/SciMLBase/stable/"
+)
+
 makedocs(;
     sitename = "CurveFit.jl",
     authors = "CurveFit Contributors",
@@ -33,7 +38,8 @@ makedocs(;
         canonical = "https://docs.sciml.ai/CurveFit/stable/",
         assets = String[],
     ),
-    pages = pages
+    pages = pages,
+    plugins = [links]
 )
 
 deploydocs(;

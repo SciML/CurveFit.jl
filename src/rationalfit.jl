@@ -54,12 +54,14 @@ end
 end
 
 function CommonSolve.init(
-        prob::CurveFitProblem, alg::RationalPolynomialFitAlgorithm; kwargs...
+        prob::CurveFitProblem, alg::RationalPolynomialFitAlgorithm;
+        alias::CurveFitAliasSpecifier = CurveFitAliasSpecifier(), kwargs...
     )
     @assert !is_nonlinear_problem(prob) "Rational polynomial fitting doesn't work with \
                                          nlfunc specification."
     sigma_not_supported(prob)
 
+    prob = _alias_inputs(prob, alias)
     coeffs_length = alg.num_degree + alg.den_degree + 1
 
     if alg.alg isa AbstractLinearAlgorithm
