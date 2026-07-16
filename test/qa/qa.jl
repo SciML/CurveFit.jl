@@ -2,6 +2,7 @@ using SciMLTesting, CurveFit, Test
 
 run_qa(
     CurveFit;
+    api_docs_kwargs = (; rendered = true),
     explicit_imports = true,
     ei_kwargs = (;
         all_explicit_imports_are_public = (;

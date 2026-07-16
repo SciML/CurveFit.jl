@@ -294,6 +294,12 @@ function isconverged(sol::CurveFitSolution)
     return SciMLBase.successful_retcode(sol)
 end
 
+# (JᵀJ)⁻¹ via QR, which is more numerically stable than inv(J'J).
+function _vcov_from_jacobian(J)
+    R = LinearAlgebra.qr(J).R
+    Rinv = inv(R)
+    return Rinv * Rinv'
+end
 
 """
     vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
@@ -329,13 +335,6 @@ when `sigma` carries absolute physical uncertainties (analogous to scipy's
     original `y`-space as fit diagnostics, so for these fits `mse(sol)` is *not*
     the variance scaling behind `vcov`.
 """
-# (JᵀJ)⁻¹ via QR, which is more numerically stable than inv(J'J).
-function _vcov_from_jacobian(J)
-    R = LinearAlgebra.qr(J).R
-    Rinv = inv(R)
-    return Rinv * Rinv'
-end
-
 function StatsAPI.vcov(sol::CurveFitSolution; absolute_sigma::Bool = false)
     J = jacobian(sol)
 

@@ -4,6 +4,16 @@ CurveFit provides built-in solvers for linear curve fitting problems. Nonlinear 
 are delegated to `NonlinearSolve.jl`. In addition, CurveFit includes specialized algorithms
 for selected nonstandard models.
 
+## CommonSolve interface
+
+Curve fitting problems are initialized and solved through the CommonSolve interface.
+
+```@docs
+init
+solve
+solve!
+```
+
 ## Linear fitting
 
 Linear curve fitting in CurveFit solves problems of the general form ``f_y(y) = a \cdot f_x(x) + b``
@@ -150,4 +160,3 @@ will obtain one from the linear rational fit.
 ```@docs
 RationalPolynomialFitAlgorithm
 ```
-

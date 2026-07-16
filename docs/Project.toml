@@ -5,9 +5,7 @@ CurveFit = "5a033b19-8c74-5913-a970-47c3779ef25c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterInterLinks = "d12716ef-a0f6-4df4-a9f1-a5a34e75c656"
 NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
-
-[sources]
-CurveFit = {path = ".."}
+StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
 
 [compat]
 Documenter = "1"

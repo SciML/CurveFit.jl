@@ -26,7 +26,7 @@ nobs
 fitted
 rss
 isconverged
-vcov
+StatsAPI.vcov(::CurveFitSolution)
 stderror
 margin_error
 confint
