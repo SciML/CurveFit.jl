@@ -2,8 +2,10 @@ using SciMLTesting, CurveFit, Test
 
 run_qa(
     CurveFit;
-    api_docs_kwargs = (; rendered = true),
-    explicit_imports = true,
+    reexports_allow = (
+        :coef, :confint, :dof, :dof_residual, :fitted, :init, :nobs, :predict,
+        :residuals, :rss, :solve, :solve!, :stderror, :vcov,
+    ),
     ei_kwargs = (;
         all_explicit_imports_are_public = (;
             ignore = (),
