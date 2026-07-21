@@ -3,6 +3,7 @@ using Documenter
 using DocumenterInterLinks
 using CurveFit
 using CommonSolve
+using StatsAPI
 using NonlinearSolve: NonlinearSolve
 
 include("pages.jl")
