@@ -13,6 +13,8 @@ you can use statistical functions on the `CurveFitSolution` object. See
 
 ```@example stats
 using CurveFit
+using CommonSolve: solve
+using StatsAPI: confint
 
 x = collect(1.0:10.0)
 θ_true = [3.0, 2.0, 1.5]
@@ -29,12 +31,12 @@ confint(sol)
 
 ## Basic quantities
 
-- [`residuals()`](@ref) measure the difference between the fitted model and the data.
-- The residual sum of squares ([`rss()`](@ref)) and mean squared error
+- [`StatsAPI.residuals`](@ref) measure the difference between the fitted model and the data.
+- The residual sum of squares ([`StatsAPI.rss`](@ref)) and mean squared error
   ([`mse()`](@ref)) summarize the overall fit quality.
-- The number of observations ([`nobs()`](@ref)) corresponds to the size of the
+- The number of observations ([`StatsAPI.nobs`](@ref)) corresponds to the size of the
   data set used, i.e the number of data points.
-- [`predict()`](@ref) gives a prediction using the fitted coefficients and new
+- [`StatsAPI.predict`](@ref) gives a prediction using the fitted coefficients and new
   data. If only the solution object is passed, original data will be used in
   calculation.
 - [`isconverged()`](@ref) checks if the solver was successful in solving the
@@ -57,7 +59,7 @@ Point estimates alone do not convey how uncertain a fitted coefficient is.
 Confidence intervals provide a range of values that are statistically
 consistent with the observed data under standard modelling assumptions.
 
-Confidence intervals can be computed with [`confint()`](@ref).
+Confidence intervals can be computed with [`StatsAPI.confint`](@ref).
 
 ### Interpreting confidence intervals
 

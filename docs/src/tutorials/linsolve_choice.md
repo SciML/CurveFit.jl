@@ -39,6 +39,7 @@ Below is a simple example of how to pass a specific linear solver.
 
 ```@example qr
 using CurveFit
+using CommonSolve: solve
 using NonlinearSolve
 
 X = collect(1.0:10.0)

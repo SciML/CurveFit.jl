@@ -17,8 +17,7 @@ using SciMLBase: SciMLBase, AbstractNonlinearAlgorithm, AbstractLinearAlgorithm,
 using DifferentiationInterface: DifferentiationInterface
 using ADTypes: AutoForwardDiff
 using Distributions: TDist, quantile
-using StatsAPI: StatsAPI, coef, residuals, predict, fitted, nobs, dof, dof_residual,
-    rss, vcov, stderror, confint
+using StatsAPI: StatsAPI, coef, residuals, nobs, dof, dof_residual, rss, vcov, stderror
 
 # Abstract base class for fitting data
 abstract type AbstractApproxFit end
@@ -46,9 +45,7 @@ export ExpSumFitAlgorithm
 
 export CurveFitSolution
 
-export solve, solve!, init
-
-export coef, residuals, predict, fitted, nobs, dof, dof_residual, rss, mse, vcov, stderror, margin_error, confint
+export mse, margin_error
 export isconverged
 
 @setup_workload begin

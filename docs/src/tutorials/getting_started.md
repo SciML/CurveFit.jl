@@ -9,6 +9,7 @@ Fit a linear function `y = a * x + b`:
 
 ```@example linear
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = 2.5 * x + 3.0
 x = collect(0:0.1:10)
@@ -31,6 +32,7 @@ For arbitrary nonlinear functions, use `NonlinearCurveFitProblem`:
 
 ```@example nonlinear
 using CurveFit
+using CommonSolve: solve
 
 # Define a nonlinear function: y = a[1] + a[2] * x^a[3]
 fn(a, x) = @. a[1] + a[2] * x^a[3]
@@ -59,6 +61,7 @@ at a time, use [`ScalarModel`](@ref):
 
 ```@example scalar_model
 using CurveFit
+using CommonSolve: solve
 
 # Define a scalar function (no @. needed): y = a[1] + a[2] * x^a[3]
 fn_scalar(a, x) = a[1] + a[2] * x^a[3]
@@ -94,6 +97,7 @@ Fit a polynomial of a given degree:
 
 ```@example polynomial
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = 1.0 + 2.0*x + 3.0*x^2
 x = collect(range(1, stop=10, length=20))
@@ -116,6 +120,7 @@ Fit an exponential function `y = b * exp(a * x)`:
 
 ```@example exponential
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = 2.0 * exp(0.3 * x)
 x = collect(range(0, stop=5, length=20))
@@ -136,6 +141,7 @@ Fit a power law `y = b * x^a`:
 
 ```@example power
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = 2.0 * x^0.8
 x = collect(range(1, stop=10, length=20))
@@ -156,6 +162,7 @@ Fit a sum of exponentials: `y = k + p * exp(λ * t)`:
 
 ```@example expsum
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = 2.0 + 3.0*exp(-0.5*t)
 t = collect(range(0, stop=10, length=50))
@@ -177,6 +184,7 @@ Fit with the modified king law: `x^2 = a + b * y^n`
 
 ```@example king
 using CurveFit
+using CommonSolve: solve
 
 # Generate the data: x^2 = a + b * y^n
 x = collect(10.0:20.0)
@@ -196,6 +204,7 @@ Fit a rational function: `y = p(x)/q(x)`
 
 ```@example rational
 using CurveFit
+using CommonSolve: solve
 
 # Generate sample data: y = (1 + 2*x) / (1 + 0.5*x - 0.1*x^2)
 x = collect(range(0, stop=5, length=30))

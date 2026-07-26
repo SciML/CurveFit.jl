@@ -7,6 +7,12 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v2.0.0] - 2026-07-26
+
+### Changed
+- CurveFit no longer reexports CommonSolve or StatsAPI functions. Import solver
+  functions from CommonSolve.jl and statistical functions from StatsAPI.jl.
+
 ## [v1.11.0] - 2026-07-08
 
 ### Added
@@ -67,7 +73,7 @@ Changelog](https://keepachangelog.com).
 ### Fixed
 - Corrected [`margin_error()`](@ref) to use the residual degrees of freedom
   rather than the degrees of freedom of the model ([#114]).
-- Fixed the covariance calculation in [`vcov()`](@ref) to correctly handle the
+- Fixed the covariance calculation in [`StatsAPI.vcov`](@ref) to correctly handle the
   uncertainties produced by linear fits of a transformed nonlinear model
   (e.g. from [`PowerCurveFitAlgorithm`](@ref), [`ExpCurveFitAlgorithm`](@ref),
   and [`KingCurveFitAlgorithm`](@ref)) by using the delta method ([#114]).
@@ -101,9 +107,9 @@ Changelog](https://keepachangelog.com).
 ## [v1.9.0] - 2026-04-24
 
 ### Added
-- Added an `absolute_sigma` argument to [`vcov()`](@ref) and related functions
+- Added an `absolute_sigma` argument to [`StatsAPI.vcov`](@ref) and related functions
   to control whether the covariance matrix is rescaled by reduced χ² ([#97]).
-- Added a `weighted` argument to [`residuals()`](@ref) and related functions to
+- Added a `weighted` argument to [`StatsAPI.residuals`](@ref) and related functions to
   control whether the returned residuals are scaled by the problem weights, if
   any ([#97]).
 
@@ -113,7 +119,7 @@ Changelog](https://keepachangelog.com).
   the unweighted residuals were stored for linear fits.
 
 ### Fixed
-- [`vcov()`](@ref) and related functions previously ignored the problem weights,
+- [`StatsAPI.vcov`](@ref) and related functions previously ignored the problem weights,
   they are now taken into account when present ([#97]).
 
 ## [v1.8.1] - 2026-04-13

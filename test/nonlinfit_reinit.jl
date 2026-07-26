@@ -1,7 +1,8 @@
 using CurveFit
+using CommonSolve: init, solve, solve!
 using Test
 using SciMLBase
-using NonlinearSolveBase: NonlinearSolveBase
+using StatsAPI
 
 @testset "Nonlinear Least Squares: reinit!()" begin
     # Create an initial problem with a cache
@@ -15,12 +16,12 @@ using NonlinearSolveBase: NonlinearSolveBase
     ub = [10.0, 10.0, 1.0]
 
     prob = NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y, sigma; lb, ub)
-    cache = CurveFit.init(prob)
+    cache = init(prob)
     @test solve!(cache).u ≈ a0 atol = 1.0e-7
 
     # Without bounds, reinit!() should preserve the user-provided u0 in the
     # returned solution metadata.
-    cache_unbounded = CurveFit.init(NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y))
+    cache_unbounded = init(NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y))
     u0 = [1.0, 1.0, 1.0]
     CurveFit.reinit!(cache_unbounded; u0, x, y)
     @test solve!(cache_unbounded).prob.u0 == u0
@@ -39,21 +40,19 @@ using NonlinearSolveBase: NonlinearSolveBase
     @test sol.prob.sigma == sigma
     @test sol.prob.lb == lb
     @test sol.prob.ub == ub
-    @test CurveFit.fitted(sol) ≈ y atol = 1.0e-7
-    @test CurveFit.residuals(sol; weighted = false) ≈ CurveFit.residuals(sol) .* sigma
+    @test StatsAPI.fitted(sol) ≈ y atol = 1.0e-7
+    @test StatsAPI.residuals(sol; weighted = false) ≈ StatsAPI.residuals(sol) .* sigma
 
-    # Repeat with an in-place model: NonlinearSolve wraps in-place Float64
-    # problems in `AutoSpecializeCallable`, which `reinit!` must unwrap.
+    # Repeat with an in-place model.
     fn(resid, a, x) = @. resid = a[1] + a[2] * x^a[3]
-    cache = CurveFit.init(NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y))
-    @test cache.cache.prob.f.f isa NonlinearSolveBase.AutoSpecializeCallable
+    cache = init(NonlinearCurveFitProblem(fn, [0.5, 0.5, 0.5], x, y))
     CurveFit.reinit!(cache; u0 = [1.0, 1.0, 1.0], x, y)
     @test solve!(cache).u ≈ a0 atol = 1.0e-7
 
     # Test reinit!() input validation with an out-of-place function so the
     # `y=nothing` cache can be constructed.
     g(a, x) = @. a[1] + a[2] * x^a[3]
-    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
+    cache = init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
 
     # Size changes are rejected
     @test_throws AssertionError CurveFit.reinit!(cache; u0 = [1.0, 1.0])
@@ -62,10 +61,10 @@ using NonlinearSolveBase: NonlinearSolveBase
     @test_throws AssertionError CurveFit.reinit!(cache; sigma = sigma[1:5])
 
     # Can't reinit a variable the problem was created without
-    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y))
+    cache = init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y))
     @test_throws AssertionError CurveFit.reinit!(cache; sigma)
 
-    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x))
+    cache = init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x))
     @test_throws AssertionError CurveFit.reinit!(cache; y)
 
     # reinit!() must not modify the user-provided arrays
@@ -73,7 +72,7 @@ using NonlinearSolveBase: NonlinearSolveBase
     y = g([3.0, 2.0, 0.7], x)
     sigma = ones(length(y))
     x_orig, y_orig, sigma_orig = copy(x), copy(y), copy(sigma)
-    cache = CurveFit.init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
+    cache = init(NonlinearCurveFitProblem(g, [0.5, 0.5, 0.5], x, y, sigma))
     sol = solve!(cache)
     CurveFit.reinit!(cache; x = x .+ 1, y = y .+ 1, sigma = sigma .+ 1)
     @test x == x_orig
