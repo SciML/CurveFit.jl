@@ -20,6 +20,7 @@ Pkg.add("CurveFit")
 
 ```@example quick_start
 using CurveFit
+using CommonSolve: solve
 
 # Sample data
 x = 0:0.1:10
@@ -37,4 +38,4 @@ println("Intercept (b): ", sol.u[2])
 println("Prediction at x=5: ", sol(5.0))
 ```
 
-See [Getting started](@ref) for more step-by-step examples with common fits.
+See [Getting started](tutorials/getting_started.md) for more step-by-step examples with common fits.

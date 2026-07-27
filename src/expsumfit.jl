@@ -1,14 +1,3 @@
-"""
-    __calc_integral_rules(::Type{T}, n; m = 2) where {T}
-
-Determine coefficients of the rules cumulative integrals of order `n` using
-[method of undetermined coefficients](https://en.wikipedia.org/wiki/Simpson%27s_rule#Undetermined_coefficients).
-Interpolation order is `m`.
-
-* `n=1`, `m=1` [Trapezoidal rule](https://en.wikipedia.org/wiki/Trapezoidal_rule)
-* `n=1`, `m=2` [Simpson's 1/3 rule](https://en.wikipedia.org/wiki/Simpson%27s_rule#Simpson's_1/3_rule)
-* `n=1`, `m=3` [Simpson's second (3/8) rule](https://en.wikipedia.org/wiki/Simpson%27s_rule#Simpson's_3/8_rule)
-"""
 function __calc_integral_rules(::Type{T}, ns::AbstractVector{Int}; m::Int = 2) where {T}
     # evaluate m-th order polynomial terms at points x = 0:m
     polyvals = Matrix{FastRational{Int}}(undef, m + 1, m + 1)

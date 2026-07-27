@@ -465,7 +465,7 @@ function StatsAPI.stderror(sol::CurveFitSolution; absolute_sigma::Bool = false, 
             vratio,
             0.0,
             atol = atol,
-            rtol = isnan(rtol) ? Base.rtoldefault(vratio, 0.0, 0) : rtol,
+            rtol = isnan(rtol) ? sqrt(eps(float(one(vratio)))) : rtol,
         ) && vratio < 0.0
         error("Covariance matrix is negative for atol=$atol and rtol=$rtol")
     end

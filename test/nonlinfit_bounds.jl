@@ -1,4 +1,5 @@
 using CurveFit
+using CommonSolve: init, solve, solve!
 using Test
 using SciMLBase
 
@@ -22,7 +23,7 @@ using SciMLBase
     @test sol.u[1] <= 2.0
 
     # Test init+solve!() path
-    cache = CurveFit.init(prob)
+    cache = init(prob)
     sol2 = solve!(cache)
     @test sol2.u[1] <= 2.0
 end

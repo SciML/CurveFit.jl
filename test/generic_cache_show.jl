@@ -1,4 +1,5 @@
 using CurveFit
+using CommonSolve: init, solve, solve!
 using Test
 using SciMLBase
 using NonlinearSolveFirstOrder: LevenbergMarquardt, GaussNewton, TrustRegion

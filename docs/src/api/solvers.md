@@ -7,12 +7,8 @@ for selected nonstandard models.
 ## CommonSolve interface
 
 Curve fitting problems are initialized and solved through the CommonSolve interface.
-
-```@docs
-init
-solve
-solve!
-```
+See the [CommonSolve documentation](https://docs.sciml.ai/CommonSolve/stable/) for its
+generic `init`, `solve`, and `solve!` functions.
 
 ## Linear fitting
 

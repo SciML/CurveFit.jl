@@ -1,5 +1,7 @@
 using CurveFit
+using CommonSolve: init, solve, solve!
 using Test
+using StatsAPI: vcov
 
 @testset "King's Law" begin
     U = range(1, stop = 20, length = 20)

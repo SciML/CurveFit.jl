@@ -40,6 +40,7 @@ CurveFit.jl provides the following fitting algorithms:
 
 ```julia
 using CurveFit
+using CommonSolve: solve
 
 x = 1.0:10.0
 y = @. 1.0 + 2.0 * x  # y = 1 + 2x

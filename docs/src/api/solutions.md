@@ -13,21 +13,21 @@ CurveFitSolution
 ## StatsAPI functions
 `CurveFitSolution` objects can be treated as statistical models and CurveFit
 defines various statistics methods for the `CurveFitSolution` type, many of
-which extend StatsAPI.jl functions.
+which extend StatsAPI.jl functions. Import these functions from StatsAPI.jl.
 
 ```@docs
-residuals
-mse
-dof
-dof_residual
-predict
-coef
-nobs
-fitted
-rss
-isconverged
-StatsAPI.vcov(::CurveFitSolution)
-stderror
-margin_error
-confint
+StatsAPI.residuals(::CurveFit.CurveFitSolution)
+CurveFit.mse
+StatsAPI.dof(::CurveFit.CurveFitSolution)
+StatsAPI.dof_residual(::CurveFit.CurveFitSolution)
+StatsAPI.predict(::CurveFit.CurveFitSolution)
+StatsAPI.coef(::CurveFit.CurveFitSolution)
+StatsAPI.nobs(::CurveFit.CurveFitSolution)
+StatsAPI.fitted(::CurveFit.CurveFitSolution)
+StatsAPI.rss(::CurveFit.CurveFitSolution)
+CurveFit.isconverged
+StatsAPI.vcov(::CurveFit.CurveFitSolution)
+StatsAPI.stderror(::CurveFit.CurveFitSolution)
+CurveFit.margin_error
+StatsAPI.confint(::CurveFit.CurveFitSolution)
 ```

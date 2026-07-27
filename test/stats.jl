@@ -1,6 +1,8 @@
 using CurveFit
+using CommonSolve: init, solve, solve!
 using Test
-using StatsAPI
+using StatsAPI: coef, confint, dof, dof_residual, fitted, nobs, predict, residuals, rss,
+    stderror, vcov
 using NonlinearSolveFirstOrder
 using LinearAlgebra
 using LinearSolve
