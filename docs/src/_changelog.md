@@ -7,11 +7,21 @@ CurrentModule = CurveFit
 This documents notable changes in CurveFit.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v2.0.0] - 2026-07-26
+## [v1.11.3] - 2026-07-29
 
 ### Changed
-- CurveFit no longer reexports CommonSolve or StatsAPI functions. Import solver
-  functions from CommonSolve.jl and statistical functions from StatsAPI.jl.
+- CurveFit no longer reexports CommonSolve or StatsAPI functions
+  ([#128]). Import solver functions from CommonSolve.jl and statistical
+  functions from StatsAPI.jl instead.
+- Added compatibility with FastRationals.jl v0.4 ([#129]).
+
+## [v1.11.2] - 2026-07-12
+
+Patch release for internal tests changes.
+
+## [v1.11.1] - 2026-07-12
+
+Patch release for internal docs/tests changes.
 
 ## [v1.11.0] - 2026-07-08
 
