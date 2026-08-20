@@ -32,7 +32,6 @@ makedocs(;
     authors = "CurveFit Contributors",
     modules = [CurveFit],
     clean = true,
-    doctest = false,
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://docs.sciml.ai/CurveFit/stable/",
