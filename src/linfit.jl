@@ -34,6 +34,20 @@ function __vandermondepoly!(A, x, n)
     return
 end
 
+function __column_equilibrate!(scales, A)
+    @inbounds for j in axes(A, 2)
+        column_norm = norm(@view(A[:, j]))
+        scale = ifelse(
+            iszero(column_norm) || !isfinite(column_norm), one(column_norm), column_norm
+        )
+        scales[j] = scale
+        @simd ivdep for k in axes(A, 1)
+            A[k, j] /= scale
+        end
+    end
+    return
+end
+
 # Default Solver
 @concrete struct GenericLinearFitCache <: AbstractCurveFitCache
     prob <: CurveFitProblem
@@ -83,6 +97,7 @@ end
 # Polynomial Fit
 @concrete struct PolynomialFitCache <: AbstractCurveFitCache
     vandermondepoly_cache <: AbstractMatrix
+    column_scales <: AbstractVector
     linsolve_cache
     prob <: CurveFitProblem
     alg <: PolynomialFitAlgorithm
@@ -101,21 +116,28 @@ function CommonSolve.init(
     bounds_not_supported(prob)
 
     prob = _alias_inputs(prob, alias)
-    vandermondepoly_cache = similar(prob.x, length(prob.x), alg.degree + 1)
+    vandermondepoly_cache = similar(
+        prob.x, float(eltype(prob.x)), length(prob.x), alg.degree + 1
+    )
+    column_scales = similar(vandermondepoly_cache, alg.degree + 1)
     linsolve_cache = init(
         LinearProblem(vandermondepoly_cache, prob.y), alg.linsolve_algorithm; kwargs...
     )
-    return PolynomialFitCache(vandermondepoly_cache, linsolve_cache, prob, alg, kwargs)
+    return PolynomialFitCache(
+        vandermondepoly_cache, column_scales, linsolve_cache, prob, alg, kwargs
+    )
 end
 
 function CommonSolve.solve!(cache::PolynomialFitCache)
     __vandermondepoly!(cache.vandermondepoly_cache, cache.prob.x, cache.alg.degree)
+    __column_equilibrate!(cache.column_scales, cache.vandermondepoly_cache)
     cache.linsolve_cache.A = cache.vandermondepoly_cache
     sol = solve!(cache.linsolve_cache)
+    u = sol.u ./ cache.column_scales
     # Compute residuals from the fitted polynomial. We can't reuse
     # vandermondepoly_cache here as the in-place factorization overwrites it.
-    resid = cache.prob.y .- evalpoly.(cache.prob.x, Ref(sol.u))
-    return CurveFitSolution(cache.alg, sol.u, resid, cache.prob, sol.retcode)
+    resid = cache.prob.y .- evalpoly.(cache.prob.x, Ref(u))
+    return CurveFitSolution(cache.alg, u, resid, cache.prob, sol.retcode)
 end
 
 function (sol::CurveFitSolution{<:PolynomialFitAlgorithm})(x)
