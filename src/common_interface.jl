@@ -336,11 +336,16 @@ Represents a polynomial fitting algorithm of degree `degree`. Only applicable to
 weights through `sigma` in [`CurveFitProblem`](@ref). This algorithm does not support
 bounds constraints (`lb`/`ub`).
 
+The columns of the Vandermonde matrix are equilibrated before the least squares
+solve, so `x` values far from `1` (where the columns `x^0` through `x^degree`
+would otherwise differ in norm by many orders of magnitude) do not by themselves
+make the fit ill-conditioned.
+
 !!! tip
 
-    For ill-conditioned problems, it is recommended to use linear solvers like
-    `QRFactorization`. Alternatively, pass in
-    `assumptions = OperatorAssumptions(false; condition = OperatorsCondition.<condition>)`
+    For problems that are ill-conditioned even after scaling, it is recommended to
+    use linear solvers like `QRFactorization`. Alternatively, pass in
+    `assumptions = OperatorAssumptions(false; condition = OperatorCondition.<condition>)`
     to `solve`/`init`.
 """
 @kwdef @concrete struct PolynomialFitAlgorithm <: AbstractCurveFitAlgorithm
