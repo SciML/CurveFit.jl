@@ -13,6 +13,12 @@
 versions = ["1", "lts", "pre"]
 os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
 
+["Core 32-bit"]
+group = "Core"
+versions = ["1"]
+os = ["ubuntu-latest"]
+arch = "x86"
+
 [QA]
 in_all = false
 versions = ["1", "lts"]
